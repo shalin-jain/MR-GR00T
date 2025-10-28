@@ -12,6 +12,7 @@ from collections.abc import Sequence
 import isaaclab.sim as sim_utils
 from isaaclab.assets import Articulation
 from isaaclab.envs import DirectMARLEnv
+from isaaclab.sensors import TiledCamera
 from isaaclab.sim.spawners.from_files import GroundPlaneCfg, spawn_ground_plane
 from isaaclab.utils.math import sample_uniform
 
@@ -24,31 +25,41 @@ class MrGr00tMarlEnv(DirectMARLEnv):
     def __init__(self, cfg: MrGr00tMarlEnvCfg, render_mode: str | None = None, **kwargs):
         super().__init__(cfg, render_mode, **kwargs)
 
-        self.robots = {}
+        # get joint names and ids
+        self._joint_ids, self._joint_names = self.robot_1.find_joints(self.cfg.joint_names, preserve_order=True)
+
+        # store processed_actions
         self.processed_actions = {}
 
     def _setup_scene(self):
-        self.robot_1 = Articulation(self.cfg.robot_1_cfg)
-        self.robot_2 = Articulation(self.cfg.robot_2_cfg)
+        """
+        Initialize robots and associated cameras
+        """
+        self.robots = {}
+        self.robot_1 = Articulation(self.cfg.scene.robot_1_cfg)
+        self.robot_2 = Articulation(self.cfg.scene.robot_2_cfg)
+        self.camera_1 = self.scene.sensors["robot_1_pov_cam"]
+        self.camera_2 = self.scene.sensors["robot_2_pov_cam"]
 
         # add articulations to scene
         self.scene.articulations["robot_1"] = self.robot_1
         self.scene.articulations["robot_2"] = self.robot_2
 
+
         # add to robot dictionary
         self.robots["robot_1"] = {
-            "articulation": self.robot_1
-            "camera": self.cfg.robot_1_pov_cam
+            "articulation": self.robot_1,
+            "camera": self.camera_1
         }
         self.robots["robot_2"] = {
-            "articulation": self.robot_2
-            "camera": self.cfg.robot_2_pov_cam
+            "articulation": self.robot_2,
+            "camera": self.camera_2
         }
 
     def _pre_physics_step(self, actions: dict[str, torch.Tensor]) -> None:
         """
         Process the given action as a residual action to GR00T N1 Inference.
-        
+
         Args:
             actions (dict[str, torch.Tensor]): dictionary of actions per robot id.
         """
@@ -56,7 +67,7 @@ class MrGr00tMarlEnv(DirectMARLEnv):
         for robot_id, robot in self.robots.items():
             articulation = robot["articulation"]
             camera = robot["camera"]
-            groot_action = self.cfg.idle_action # TODO: groot inference goes here!
+            groot_action = articulation.data.default_joint_pos[:, self._joint_ids].clone() # TODO: groot inference goes here!
             self.processed_actions[robot_id] = actions[robot_id] + groot_action
 
     def _apply_action(self) -> None:
@@ -65,7 +76,7 @@ class MrGr00tMarlEnv(DirectMARLEnv):
         """
         for robot_id, robot in self.robots.items():
             articulation = robot["articulation"]
-            articulation.set_joint_position_target(self.processed_actions[robot_id], self.cfg.joint_names)
+            articulation.set_joint_position_target(self.processed_actions[robot_id], self._joint_ids)
 
     def _get_observations(self) -> dict[str, torch.Tensor]:
         """
@@ -93,47 +104,31 @@ class MrGr00tMarlEnv(DirectMARLEnv):
             rew[robot_id] = torch.zeros((self.scene.num_envs,), device=self.device)
         return rew
 
-    def _get_dones(self) -> tuple[dict[str, torch.Tensor], dict[str, torch.Tensor]]:
+    def _get_terminations(self) -> torch.Tensor:
         """
-        Get dones.
-
+        Get environment terminations.
         Returns:
-            tuple[dict[str, torch.Tensor], dict[str, torch.Tensor]]: tuple (dones, terminations)
+            A tensor indicating which environments have terminated. Shape is (num_envs,)
         """
+
+        # TODO: see if we want earlier terminations
+        return torch.zeros((self.scene.num_envs,), device=self.device)
+
+    def _get_dones(self) -> tuple[dict, dict]:
+        """
+        Compute and return the done flags for the environment.
+        Returns:
+            A tuple containing the done flags for termination and time-out (keyed by the agent ID).
+            Shape of individual tensors is (num_envs,).
+        """
+        time_outs = {}
         dones = {}
-        terminations = {}
-        for robot_id, robot in self.robots.items:
-            # TODO: fix this
-            dones[robot_id] = torch.zeros((self.scene.num_envs,), device=self.device)
-            terminations[robot_id] = torch.zeros((self.scene.num_envs,), device=self.device)
-        return dones, terminations
+        time_out = self.episode_length_buf > self.max_episode_length
+        for robot_id in self.robots.keys():
+            time_outs[robot_id] = time_out
+            dones[robot_id] = torch.logical_or(
+                time_out,
+                self._get_terminations()
+            )
 
-    def _reset_idx(self, env_ids: Sequence[int] | None):
-        """
-        Batched reset of environments by id.
-
-        Args:
-            env_ids (Sequence[int]): environment id's to reset.
-        """
-        self.scene.reset(env_ids)
-
-        ######################################################################
-        # Copied from Original DirectMARLEnv Implementation
-        ######################################################################
-        # apply events such as randomization for environments that need a reset
-        if self.cfg.events:
-            if "reset" in self.event_manager.available_modes:
-                env_step_count = self._sim_step_counter // self.cfg.decimation
-                self.event_manager.apply(mode="reset", env_ids=env_ids, global_env_step_count=env_step_count)
-
-        # reset noise models
-        if self.cfg.action_noise_model:
-            for noise_model in self._action_noise_model.values():
-                noise_model.reset(env_ids)
-        if self.cfg.observation_noise_model:
-            for noise_model in self._observation_noise_model.values():
-                noise_model.reset(env_ids)
-
-        # reset the episode length buffer
-        self.episode_length_buf[env_ids] = 0
-        ######################################################################
+        return (time_outs, dones)

@@ -34,6 +34,7 @@ import torch
 
 import isaaclab_tasks  # noqa: F401
 from isaaclab_tasks.utils import parse_env_cfg
+from isaaclab.envs import DirectMARLEnv
 
 import MR_GR00T.tasks  # noqa: F401
 
@@ -53,11 +54,18 @@ def main():
     # reset environment
     env.reset()
     # simulate environment
+    step = 0
     while simulation_app.is_running():
         # run everything in inference mode
         with torch.inference_mode():
-            # compute zero actions
-            actions = torch.zeros(env.action_space.shape, device=env.unwrapped.device)
+            if isinstance(env.unwrapped, DirectMARLEnv):
+                actions = {}
+                for robot_id in env.unwrapped.robots.keys():
+                    actions[robot_id] = torch.zeros(
+                        (env.unwrapped.num_envs, env.action_space(robot_id).shape[-1]), device=env.unwrapped.device
+                    )
+            else:
+                actions = torch.zeros(env.action_space.shape, device=env.unwrapped.device)
             # apply actions
             env.step(actions)
 

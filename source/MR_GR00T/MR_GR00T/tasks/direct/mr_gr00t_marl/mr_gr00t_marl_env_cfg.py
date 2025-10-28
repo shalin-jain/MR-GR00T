@@ -10,8 +10,11 @@ from isaaclab.assets import ArticulationCfg, AssetBaseCfg, RigidObjectCfg
 from isaaclab.envs import DirectMARLEnvCfg
 from isaaclab.scene import InteractiveSceneCfg
 from isaaclab.sensors.camera import TiledCameraCfg
+import isaaclab.sim as sim_utils
 from isaaclab.sim import SimulationCfg
+from isaaclab.sim.spawners.from_files.from_files_cfg import GroundPlaneCfg, UsdFileCfg
 from isaaclab.utils import configclass
+from isaaclab.utils.assets import ISAACLAB_NUCLEUS_DIR
 
 joint_names_dict = {
     # arm joint
@@ -56,11 +59,106 @@ joint_names_dict = {
 joint_names = list(joint_names_dict.keys())
 tuned_joint_names = ["left-arm", "right-arm"]
 
+# Joint initialization values
+initial_joint_pos ={
+    # right-arm
+    "right_shoulder_pitch_joint": 0.0,
+    "right_shoulder_roll_joint": 0.0,
+    "right_shoulder_yaw_joint": 0.0,
+    "right_elbow_pitch_joint": -1.5708,
+    "right_wrist_yaw_joint": 0.0,
+    "right_wrist_roll_joint": 0.0,
+    "right_wrist_pitch_joint": 0.0,
+    # left-arm
+    "left_shoulder_pitch_joint": -0.10933163,
+    "left_shoulder_roll_joint": 0.43292055,
+    "left_shoulder_yaw_joint": -0.15983289,
+    "left_elbow_pitch_joint": -1.48233023,
+    "left_wrist_yaw_joint": 0.2359135,
+    "left_wrist_roll_joint": 0.26184522,
+    "left_wrist_pitch_joint": 0.00830735,
+    # right hand
+    "R_index_intermediate_joint": 0.0,
+    "R_index_proximal_joint": 0.0,
+    "R_middle_intermediate_joint": 0.0,
+    "R_middle_proximal_joint": 0.0,
+    "R_pinky_intermediate_joint": 0.0,
+    "R_pinky_proximal_joint": 0.0,
+    "R_ring_intermediate_joint": 0.0,
+    "R_ring_proximal_joint": 0.0,
+    "R_thumb_distal_joint": 0.0,
+    "R_thumb_proximal_pitch_joint": 0.0,
+    "R_thumb_proximal_yaw_joint": -1.57,
+    # left hand
+    "L_index_intermediate_joint": 0.0,
+    "L_index_proximal_joint": 0.0,
+    "L_middle_intermediate_joint": 0.0,
+    "L_middle_proximal_joint": 0.0,
+    "L_pinky_intermediate_joint": 0.0,
+    "L_pinky_proximal_joint": 0.0,
+    "L_ring_intermediate_joint": 0.0,
+    "L_ring_proximal_joint": 0.0,
+    "L_thumb_distal_joint": 0.0,
+    "L_thumb_proximal_pitch_joint": 0.0,
+    "L_thumb_proximal_yaw_joint": -1.57,
+    # --
+    "head_.*": 0.0,
+    "waist_.*": 0.0,
+    ".*_hip_.*": 0.0,
+    ".*_knee_.*": 0.0,
+    ".*_ankle_.*": 0.0,
+}
+initial_joint_vel = {".*": 0.0}
+
 ##
 # Scene definition
 ##
 @configclass
 class ObjectTableSceneCfg(InteractiveSceneCfg):
+
+    # Define two robots
+    robot_1_cfg: ArticulationCfg = GR1T2_CFG.replace(
+        prim_path="/World/envs/env_.*/robot_1",
+        init_state=ArticulationCfg.InitialStateCfg(
+            pos=(-0.5, 0, 0.93),
+            rot=(0.7071, 0, 0, 0.7071),
+            joint_pos=initial_joint_pos,
+            joint_vel=initial_joint_vel,
+        ),
+    )
+    robot_2_cfg: ArticulationCfg = GR1T2_CFG.replace(
+        prim_path="/World/envs/env_.*/robot_2",
+        init_state=ArticulationCfg.InitialStateCfg(
+            pos=(0.5, 0, 0.93),
+            rot=(0.7071, 0, 0, 0.7071),
+            joint_pos=initial_joint_pos,
+            joint_vel=initial_joint_vel,
+        ),
+    )
+
+    # define POV cameras
+    robot_1_pov_cam = TiledCameraCfg(
+        height=160,
+        width=256,
+        offset=TiledCameraCfg.OffsetCfg(
+            pos=(-0.5, 0.12, 1.85418), rot=(-0.17246, 0.98502, 0.0, 0.0), convention="ros"
+        ),
+        prim_path="{ENV_REGEX_NS}/robot_1_camera",
+        update_period=0,
+        data_types=["rgb"],
+        spawn=sim_utils.PinholeCameraCfg(focal_length=18.15, clipping_range=(0.1, 2)),
+    )
+    robot_2_pov_cam = TiledCameraCfg(
+        height=160,
+        width=256,
+        offset=TiledCameraCfg.OffsetCfg(
+            pos=(0.5, 0.12, 1.85418), rot=(-0.17246, 0.98502, 0.0, 0.0), convention="ros"
+        ),
+        prim_path="{ENV_REGEX_NS}/robot_2_camera",
+        update_period=0,
+        data_types=["rgb"],
+        spawn=sim_utils.PinholeCameraCfg(focal_length=18.15, clipping_range=(0.1, 2)),
+    )
 
     # Table
     table = AssetBaseCfg(
@@ -93,94 +191,6 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
         ),
     )
 
-    # Define two robots
-    inital_state = ArticulationCfg.InitialStateCfg(
-        pos=(-0.5, 0, 0.93),
-        rot=(0.7071, 0, 0, 0.7071),
-        joint_pos={
-            # right-arm
-            "right_shoulder_pitch_joint": 0.0,
-            "right_shoulder_roll_joint": 0.0,
-            "right_shoulder_yaw_joint": 0.0,
-            "right_elbow_pitch_joint": -1.5708,
-            "right_wrist_yaw_joint": 0.0,
-            "right_wrist_roll_joint": 0.0,
-            "right_wrist_pitch_joint": 0.0,
-            # left-arm
-            "left_shoulder_pitch_joint": -0.10933163,
-            "left_shoulder_roll_joint": 0.43292055,
-            "left_shoulder_yaw_joint": -0.15983289,
-            "left_elbow_pitch_joint": -1.48233023,
-            "left_wrist_yaw_joint": 0.2359135,
-            "left_wrist_roll_joint": 0.26184522,
-            "left_wrist_pitch_joint": 0.00830735,
-            # right hand
-            "R_index_intermediate_joint": 0.0,
-            "R_index_proximal_joint": 0.0,
-            "R_middle_intermediate_joint": 0.0,
-            "R_middle_proximal_joint": 0.0,
-            "R_pinky_intermediate_joint": 0.0,
-            "R_pinky_proximal_joint": 0.0,
-            "R_ring_intermediate_joint": 0.0,
-            "R_ring_proximal_joint": 0.0,
-            "R_thumb_distal_joint": 0.0,
-            "R_thumb_proximal_pitch_joint": 0.0,
-            "R_thumb_proximal_yaw_joint": -1.57,
-            # left hand
-            "L_index_intermediate_joint": 0.0,
-            "L_index_proximal_joint": 0.0,
-            "L_middle_intermediate_joint": 0.0,
-            "L_middle_proximal_joint": 0.0,
-            "L_pinky_intermediate_joint": 0.0,
-            "L_pinky_proximal_joint": 0.0,
-            "L_ring_intermediate_joint": 0.0,
-            "L_ring_proximal_joint": 0.0,
-            "L_thumb_distal_joint": 0.0,
-            "L_thumb_proximal_pitch_joint": 0.0,
-            "L_thumb_proximal_yaw_joint": -1.57,
-            # --
-            "head_.*": 0.0,
-            "waist_.*": 0.0,
-            ".*_hip_.*": 0.0,
-            ".*_knee_.*": 0.0,
-            ".*_ankle_.*": 0.0,
-        },
-        joint_vel={".*": 0.0},
-    )
-    robot_1: ArticulationCfg = GR1T2_CFG.replace(
-        prim_path="/World/envs/env_.*/robot_1",
-        init_state=inital_state,
-    )
-    initial_state.pos = (0.5, 0, 0.93)
-    robot_2: ArticulationCfg = GR1T2_CFG.replace(
-        prim_path="/World/envs/env_.*/robot_2",
-        init_state=inital_state,
-    )
-
-    # define POV cameras
-    robot_1_pov_cam = TiledCameraCfg(
-        height=160,
-        width=256,
-        offset=TiledCameraCfg.OffsetCfg(
-            pos=(-0.5, 0.12, 1.85418), rot=(-0.17246, 0.98502, 0.0, 0.0), convention="ros"
-        ),
-        prim_path="{ENV_REGEX_NS}/robot_1_camera",
-        update_period=0,
-        data_types=["rgb"],
-        spawn=sim_utils.PinholeCameraCfg(focal_length=18.15, clipping_range=(0.1, 2)),
-    )
-    robot_1_pov_cam = TiledCameraCfg(
-        height=160,
-        width=256,
-        offset=TiledCameraCfg.OffsetCfg(
-            pos=(0.5, 0.12, 1.85418), rot=(-0.17246, 0.98502, 0.0, 0.0), convention="ros"
-        ),
-        prim_path="{ENV_REGEX_NS}/robot_2_camera",
-        update_period=0,
-        data_types=["rgb"],
-        spawn=sim_utils.PinholeCameraCfg(focal_length=18.15, clipping_range=(0.1, 2)),
-    )
-
     # Ground plane
     ground = AssetBaseCfg(
         prim_path="/World/GroundPlane",
@@ -211,47 +221,10 @@ class MrGr00tMarlEnvCfg(DirectMARLEnvCfg):
     sim: SimulationCfg = SimulationCfg(dt=1 / 100, render_interval=decimation)
 
     # scene
-    scene: InteractiveSceneCfg = InteractiveSceneCfg(num_envs=4096, env_spacing=4.0, replicate_physics=True)
+    scene: InteractiveSceneCfg = ObjectTableSceneCfg(num_envs=4096, env_spacing=4.0, replicate_physics=True)
 
-    # idle action for debugging
-        # Idle action to hold robot in default pose
-    # Action format: [left arm pos (3), left arm quat (4), right arm pos (3),
-    #                 right arm quat (4), left/right hand joint pos (22)]
-    idle_action = torch.tensor([[
-        -0.2909,
-        0.2778,
-        1.1247,
-        0.5253,
-        0.5747,
-        -0.4160,
-        0.4699,
-        0.22878,
-        0.2536,
-        1.0953,
-        0.5,
-        0.5,
-        -0.5,
-        0.5,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-    ]])
+    def __post_init__(self):
+        """Post initialization."""
+        # Set settings for camera rendering
+        self.rerender_on_reset = True
+        self.sim.render.antialiasing_mode = "OFF"  # disable dlss
