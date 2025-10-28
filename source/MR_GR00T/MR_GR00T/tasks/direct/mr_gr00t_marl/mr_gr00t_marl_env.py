@@ -56,7 +56,7 @@ class MrGr00tMarlEnv(DirectMARLEnv):
         for robot_id, robot in self.robots.items():
             articulation = robot["articulation"]
             camera = robot["camera"]
-            groot_action = 0 # groot inference here!
+            groot_action = self.cfg.idle_action # TODO: groot inference goes here!
             self.processed_actions[robot_id] = actions[robot_id] + groot_action
 
     def _apply_action(self) -> None:
