@@ -132,3 +132,37 @@ class MrGr00tMarlEnv(DirectMARLEnv):
             )
 
         return (time_outs, dones)
+
+    def _reset_idx(self, env_ids: Sequence[int]):
+        """
+        Copied and minimally modified from default implementation.
+        Reset environments based on specified indices.
+
+        Args:
+            env_ids: List of environment ids which must be reset
+        """
+        self.scene.reset(env_ids)
+
+        # set robot spawn configuration
+        # by default reset tries to move them to this position which errors
+        for _, robot in self.robots.items():
+            articulation = robot["articulation"]
+            articulation.write_joint_state_to_sim(articulation.data.default_joint_pos, articulation.data.default_joint_vel)
+
+        # apply events such as randomization for environments that need a reset
+        if self.cfg.events:
+            if "reset" in self.event_manager.available_modes:
+                env_step_count = self._sim_step_counter // self.cfg.decimation
+                self.event_manager.apply(mode="reset", env_ids=env_ids, global_env_step_count=env_step_count)
+
+        # reset noise models
+        if self.cfg.action_noise_model:
+            for noise_model in self._action_noise_model.values():
+                noise_model.reset(env_ids)
+        if self.cfg.observation_noise_model:
+            for noise_model in self._observation_noise_model.values():
+                noise_model.reset(env_ids)
+
+        # reset the episode length buffer
+        self.episode_length_buf[env_ids] = 0
+

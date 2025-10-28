@@ -118,7 +118,7 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
 
     # Define two robots
     robot_1_cfg: ArticulationCfg = GR1T2_CFG.replace(
-        prim_path="/World/envs/env_.*/robot_1",
+        prim_path="{ENV_REGEX_NS}/robot_1",
         init_state=ArticulationCfg.InitialStateCfg(
             pos=(-0.5, 0, 0.93),
             rot=(0.7071, 0, 0, 0.7071),
@@ -127,7 +127,7 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
         ),
     )
     robot_2_cfg: ArticulationCfg = GR1T2_CFG.replace(
-        prim_path="/World/envs/env_.*/robot_2",
+        prim_path="{ENV_REGEX_NS}/robot_2",
         init_state=ArticulationCfg.InitialStateCfg(
             pos=(0.5, 0, 0.93),
             rot=(0.7071, 0, 0, 0.7071),
