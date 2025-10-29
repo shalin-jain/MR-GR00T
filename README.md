@@ -1,16 +1,9 @@
-# Template for Isaac Lab Projects
+# Multi-Robot GR00T
 
 ## Overview
 
-This project/repository serves as a template for building projects or extensions based on Isaac Lab.
-It allows you to develop in an isolated environment, outside of the core Isaac Lab repository.
-
-**Key Features:**
-
-- `Isolation` Work outside the core Isaac Lab repository, ensuring that your development efforts remain self-contained.
-- `Flexibility` This template is set up to allow your code to be run as an extension in Omniverse.
-
-**Keywords:** extension, template, isaaclab
+This project/repository is built on the IsaacLab extension template. It supports the following environments to be trained with skrl MARL.
+- `MR-Gr00t-Marl-Direct-v0`
 
 ## Installation
 
@@ -18,12 +11,42 @@ It allows you to develop in an isolated environment, outside of the core Isaac L
   We recommend using the conda or uv installation as it simplifies calling Python scripts from the terminal.
 
 - Clone or copy this project/repository separately from the Isaac Lab installation (i.e. outside the `IsaacLab` directory):
-
+    ```bash
+    git clone --recurse-submodules https://github.com/shalin-jain/MR-GR00T
+    ```
+- Using a python interpreter that has Isaac Lab installed, install GR00T N1 dependencies
+    ```bash
+    cd submodules/Isaac-GR00T
+    pip install --upgrade setuptools
+    pip install -e .[base]
+    pip install --no-build-isolation flash-attn==2.8.0.post2 # note this versioning may need to be different
+    ```
+- Verify GR00T N1 dependencies are installed
+    ```bash
+    python -c "import gr00t; print('gr00t imported successfully')"
+    ```
 - Using a python interpreter that has Isaac Lab installed, install the library in editable mode using:
-
     ```bash
     # use 'PATH_TO_isaaclab.sh|bat -p' instead of 'python' if Isaac Lab is not installed in Python venv or conda
     python -m pip install -e source/MR_GR00T
+
+- Download GR00T N1 Checkpoints
+    ```bash
+    # Provide your access token with read permission
+    huggingface-cli login
+
+    # Download base checkpoint
+    export CKPT="nvidia/nvidia/GR00T-N1-2B"
+    export CKPT_LOCAL_DIR="nvidia/default/
+    huggingface-cli download --resume-download $CKPT --local-dir $CKPT_LOCAL_DIR
+    echo "downloaded base checkpoint"
+
+    # Download single-agent finetuned checkpoint
+    export CKPT="nvidia/nvidia/GR00T-N1-2B-tuned-Exhaust-Pipe-Sorting-task"
+    export CKPT_LOCAL_DIR="nvidia/finetuned/
+    huggingface-cli download --resume-download $CKPT --local-dir $CKPT_LOCAL_DIR
+    echo "downloaded finetuned checkpoint"
+    ```
 
 - Verify that the extension is correctly installed by:
 
@@ -52,7 +75,7 @@ It allows you to develop in an isolated environment, outside of the core Isaac L
 
             ```bash
             # use 'FULL_PATH_TO_isaaclab.sh|bat -p' instead of 'python' if Isaac Lab is not installed in Python venv or conda
-            python scripts/zero_agent.py --task=<TASK_NAME>
+            python scripts/zero_agent.py --num_envs 1 --task MR-Gr00t-Marl-Direct-v0 --enable_cameras
             ```
         - Random-action agent
 
