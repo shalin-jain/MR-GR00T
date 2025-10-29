@@ -16,6 +16,8 @@ from isaaclab.sim.spawners.from_files.from_files_cfg import GroundPlaneCfg, UsdF
 from isaaclab.utils import configclass
 from isaaclab.utils.assets import ISAACLAB_NUCLEUS_DIR
 
+from MR_GR00T.vla.config.args import Gr00tN1ClosedLoopArguments
+
 joint_names_dict = {
     # arm joint
     "left_shoulder_pitch_joint": 0,
@@ -203,6 +205,16 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
         spawn=sim_utils.DomeLightCfg(color=(0.75, 0.75, 0.75), intensity=3000.0),
     )
 
+##
+# VLA config
+##
+@configclass
+class VLACfg:
+    args: Gr00tN1ClosedLoopArguments = Gr00tN1ClosedLoopArguments(model_path="/home/sjain441/MR-GR00T/MR_GR00T/nvidia/default")
+    commands: dict = {
+        "robot_1": "Pick up the blue pipe and pass it to the robot on the right",
+        "robot_2": "Receive the blue pipe from the robot on the left and place it to the bin on the right"
+    }
 
 @configclass
 class MrGr00tMarlEnvCfg(DirectMARLEnvCfg):
@@ -216,6 +228,9 @@ class MrGr00tMarlEnvCfg(DirectMARLEnvCfg):
     observation_spaces = {"robot_1": 1, "robot_2": 1} # TODO define these properly
     state_space = -1
     joint_names = joint_names
+
+    # vla
+    vla = VLACfg()
 
     # simulation
     sim: SimulationCfg = SimulationCfg(dt=1 / 100, render_interval=decimation)
