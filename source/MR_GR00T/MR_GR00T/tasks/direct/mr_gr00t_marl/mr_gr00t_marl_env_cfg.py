@@ -173,7 +173,7 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
         ),
     )
 
-    blue_exhaust_pipe = RigidObjectCfg(
+    object = RigidObjectCfg(
         prim_path="{ENV_REGEX_NS}/BlueExhaustPipe",
         init_state=RigidObjectCfg.InitialStateCfg(pos=[-0.54904, 0.31, 1.2590], rot=[0, 0, 1.0, 0]),
         spawn=UsdFileCfg(
@@ -183,7 +183,7 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
         ),
     )
 
-    blue_sorting_bin = RigidObjectCfg(
+    bin = RigidObjectCfg(
         prim_path="{ENV_REGEX_NS}/BlueSortingBin",
         init_state=RigidObjectCfg.InitialStateCfg(pos=[0.66605, 0.39, 0.98634], rot=[1.0, 0, 0, 0]),
         spawn=UsdFileCfg(
@@ -210,10 +210,10 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
 ##
 @configclass
 class VLACfg:
-    args: Gr00tN1ClosedLoopArguments = Gr00tN1ClosedLoopArguments(model_path="/home/sjain441/MR-GR00T/MR_GR00T/nvidia/default")
+    args: Gr00tN1ClosedLoopArguments = Gr00tN1ClosedLoopArguments(model_path="/home/sjain441/MR-GR00T/MR_GR00T/nvidia/finetuned")
     commands: dict = {
-        "robot_1": "Pick up the blue pipe and pass it to the robot on the right",
-        "robot_2": "Receive the blue pipe from the robot on the left and place it to the bin on the right"
+        "robot_1": "Pick up the blue pipe and pass it to your left",
+        "robot_2": "Wait to receive the blue pipe from the left and place it in the bin on the right"
     }
 
 @configclass
@@ -243,3 +243,11 @@ class MrGr00tMarlEnvCfg(DirectMARLEnvCfg):
         # Set settings for camera rendering
         self.rerender_on_reset = True
         self.sim.render.antialiasing_mode = "OFF"  # disable dlss
+        self.wait_for_textures = False
+
+        # replace the stiffness and dynamics in arm joints in the robot
+        for joint_name in tuned_joint_names:
+            self.scene.robot_1_cfg.actuators[joint_name].stiffness = 3000
+            self.scene.robot_1_cfg.actuators[joint_name].damping = 100
+            self.scene.robot_2_cfg.actuators[joint_name].stiffness = 3000
+            self.scene.robot_2_cfg.actuators[joint_name].damping = 100
