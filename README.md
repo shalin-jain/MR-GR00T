@@ -36,13 +36,13 @@ This project/repository is built on the IsaacLab extension template. It supports
     huggingface-cli login
 
     # Download base checkpoint
-    export CKPT="nvidia/nvidia/GR00T-N1-2B"
+    export CKPT="nvidia/GR00T-N1-2B"
     export CKPT_LOCAL_DIR="nvidia/default/
     huggingface-cli download --resume-download $CKPT --local-dir $CKPT_LOCAL_DIR
     echo "downloaded base checkpoint"
 
     # Download single-agent finetuned checkpoint
-    export CKPT="nvidia/nvidia/GR00T-N1-2B-tuned-Exhaust-Pipe-Sorting-task"
+    export CKPT="nvidia/GR00T-N1-2B-tuned-Exhaust-Pipe-Sorting-task"
     export CKPT_LOCAL_DIR="nvidia/finetuned/
     huggingface-cli download --resume-download $CKPT --local-dir $CKPT_LOCAL_DIR
     echo "downloaded finetuned checkpoint"
