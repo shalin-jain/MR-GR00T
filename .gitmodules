@@ -1,4 +1,4 @@
 [submodule "submodules/Isaac-GR00T"]
 	path = submodules/Isaac-GR00T
-	url = git@github.com:NVIDIA/Isaac-GR00T.git
-	branch = n1-release
+	url = git@github.com:shalin-jain/Isaac-GR00T.git
+	branch = mr-gr00t
