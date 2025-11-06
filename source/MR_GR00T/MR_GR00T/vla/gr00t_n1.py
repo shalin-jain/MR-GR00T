@@ -89,13 +89,13 @@ class Gr00tN1(VLABase):
             "state.left_hand": robot_state_policy["left_hand"].reshape(-1, 1, 6),  # numpy array of shape (N, 1, 6)
             "state.right_hand": robot_state_policy["right_hand"].reshape(-1, 1, 6),  # numpy array of shape (N, 1, 6)
         }
-        robot_action_policy = self.model.get_action(observations)
+        robot_action_policy, backbone_embedding = self.model.get_action(observations)
 
         robot_action_sim = remap_policy_joints_to_sim_joints(
             robot_action_policy, self.gr00t_joints_config, self.sim_gr1_action_joint_config, self.args.simulation_device
         )
 
-        return robot_action_sim
+        return robot_action_sim, backbone_embedding
 
     def reset(self):
         """Resets the policy's internal state."""

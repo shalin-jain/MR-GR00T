@@ -3,7 +3,7 @@
 ## Overview
 
 This project/repository is built on the IsaacLab extension template. It supports the following environments to be trained with skrl MARL.
-- `MR-Gr00t-Marl-Direct-v0`
+- `Mr-Gr00t-Marl-Direct-v0`
 
 ## Installation
 
