@@ -60,6 +60,7 @@ class MrGr00tMarlEnv(DirectMARLEnv):
             # initialize vla actions
             robot["vla_actions"] = robot["articulation"].data.default_joint_pos[:, self._joint_ids].clone()
             robot["vla_actions"] = robot["vla_actions"].unsqueeze(1).repeat(1, self.vla_chunk, 1)  # expand out chunk dim
+            robot["vla_backbone_embedding"] = torch.zeros((self.scene.num_envs, self.cfg.vla.backbone_embedding_dim), device=self.device)
 
             # get configured lanugage commands
             robot["vla_command"] = self.cfg.vla.commands[robot_id]
@@ -126,7 +127,8 @@ class MrGr00tMarlEnv(DirectMARLEnv):
 
         # update actions and embeddings for relevant envs
         robot["vla_actions"][env_ids, :, :] = goal_joint_pos[env_ids, :, :]
-        robot["vla_backbone_embedding"][env_ids] = backbone_embedding[env_ids]
+        vla_backbone_embedding = backbone_embedding["backbone_features"][env_ids].mean(dim=1)
+        robot["vla_backbone_embedding"][env_ids] = vla_backbone_embedding.float()
 
         # update counters for relevant envs
         robot["vla_counter"][env_ids] = 0
@@ -167,7 +169,7 @@ class MrGr00tMarlEnv(DirectMARLEnv):
         for robot_id, _ in self.robots.items():
             self._vla_inference(robot_id)
             # pass in vla backbone embedding and action as observation (TODO: make this its own function?)
-            vla_action = self.robots[robot_id]["vla_actions"][:, self.robots[robot_id]["vla_counter"], :]
+            vla_action = self.robots[robot_id]["vla_actions"][:, self.robots[robot_id]["vla_counter"], :].squeeze(1)
             obs[robot_id] = torch.concatenate([self.robots[robot_id]["vla_backbone_embedding"], vla_action], dim=-1)
         return obs
 

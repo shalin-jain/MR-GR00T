@@ -1,6 +1,7 @@
 # Copied and modified from https://github.com/isaac-sim/IsaacLabEvalTasks/blob/main/scripts/policies/gr00t_n1_policy.py
 
 import os
+from typing import Any, Dict, Tuple
 
 from isaaclab.sensors import Camera
 from gr00t.experiment.data_config import DATA_CONFIG_MAP
@@ -60,7 +61,7 @@ class Gr00tN1(VLABase):
 
     def get_new_goal(
         self, current_state: JointsAbsPosition, ego_camera: Camera, language_instruction: str
-    ) -> JointsAbsPosition:
+    ) -> Tuple[JointsAbsPosition, Dict[str, Any]]:
         """
         Run policy prediction on the given observations. Produce a new action goal for the robot.
 
@@ -70,7 +71,7 @@ class Gr00tN1(VLABase):
             language_instruction: language instruction for the task
 
         Returns:
-            A dictionary containing the inferred action for robot joints.
+            A tuple containing the inferred action for robot joints and the backbone embedding.
         """
         rgb = ego_camera.data.output["rgb"]
         # Apply preprocessing to rgb

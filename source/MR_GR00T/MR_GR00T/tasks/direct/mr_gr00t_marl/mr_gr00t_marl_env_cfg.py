@@ -215,6 +215,7 @@ class VLACfg:
         "robot_1": "Pick up the blue pipe and pass it to your left",
         "robot_2": "Wait to receive the blue pipe from the left and place it in the bin on the right"
     }
+    backbone_embedding_dim: int = 1536
 
 @configclass
 class MrGr00tMarlEnvCfg(DirectMARLEnvCfg):
