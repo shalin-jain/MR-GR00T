@@ -44,6 +44,9 @@ class MrGr00tMarlEnv(DirectMARLEnv):
         self.low_robot_joint_limits = robot_joint_limits[..., 0][:, self._joint_ids]
         self.high_robot_joint_limits = robot_joint_limits[..., 1][:, self._joint_ids]
 
+        # store object
+        self.object = self.scene["object"]
+
         # load gr00t model, initialize relevant variables
         self.vla = Gr00tN1(self.cfg.vla.args)
         self.vla_chunk = self.cfg.vla.args.num_feedback_actions
@@ -141,6 +144,7 @@ class MrGr00tMarlEnv(DirectMARLEnv):
             actions (dict[str, torch.Tensor]): dictionary of actions per robot id.
         """
         for robot_id, robot in self.robots.items():
+            self._vla_inference(robot_id)
             env_indices = torch.arange(self.scene.num_envs, device=self.device)
             groot_action = robot["vla_actions"][env_indices, robot["vla_counter"], :]
             self.processed_actions[robot_id] = actions[robot_id] + groot_action.squeeze()
@@ -167,7 +171,6 @@ class MrGr00tMarlEnv(DirectMARLEnv):
         """
         obs = {}
         for robot_id, _ in self.robots.items():
-            self._vla_inference(robot_id)
             # pass in vla backbone embedding and action as observation (TODO: make this its own function?)
             env_indices = torch.arange(self.scene.num_envs, device=self.device)
             vla_action = self.robots[robot_id]["vla_actions"][env_indices, self.robots[robot_id]["vla_counter"], :].squeeze(1)
@@ -185,7 +188,7 @@ class MrGr00tMarlEnv(DirectMARLEnv):
         for robot_id, robot in self.robots.items():
             dist_to_bin = torch.norm(self.scene["object"].data.root_pos_w - self.scene["bin"].data.root_pos_w, dim=-1)
             progress_rew = -0.1 * dist_to_bin
-            success_bonus = torch.where(dist_to_bin < 0.1, 10.0, 0.0)
+            success_bonus = torch.where(dist_to_bin < 0.1, 100.0, 0.0)
             rew[robot_id] = progress_rew + success_bonus
         return rew
 
@@ -234,11 +237,25 @@ class MrGr00tMarlEnv(DirectMARLEnv):
         # by default reset tries to move them to this position which errors
         for _, robot in self.robots.items():
             articulation = robot["articulation"]
-            articulation.write_joint_state_to_sim(articulation.data.default_joint_pos, articulation.data.default_joint_vel)
+            articulation.write_joint_state_to_sim(
+                articulation.data.default_joint_pos[env_ids, :],
+                articulation.data.default_joint_vel[env_ids, :],
+                env_ids=env_ids
+            )
 
             # reset vla counters
-            robot["vla_counter"] = torch.zeros((self.scene.num_envs,), device=self.device) + (self.vla_chunk-1)
-            robot["vla_counter"] = robot["vla_counter"].int()
+            robot["vla_counter"][env_ids] = self.vla_chunk-1
+        
+        # reset object states
+        env_origins = torch.concatenate(
+            [self.scene.env_origins[env_ids], torch.zeros((len(env_ids), 4), device=self.device)], dim=-1
+        )
+        self.object.write_root_pose_to_sim(
+            self.object.data.default_root_state[env_ids][:, :7] + env_origins, env_ids
+        )
+        self.object.write_root_velocity_to_sim(
+            torch.zeros_like(self.object.data.default_root_state[env_ids][:, 7:]), env_ids
+        )
 
         # apply events such as randomization for environments that need a reset
         if self.cfg.events:

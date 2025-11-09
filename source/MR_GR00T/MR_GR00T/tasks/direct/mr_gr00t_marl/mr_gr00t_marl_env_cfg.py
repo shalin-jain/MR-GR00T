@@ -212,7 +212,7 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
 class VLACfg:
     args: Gr00tN1ClosedLoopArguments = Gr00tN1ClosedLoopArguments(model_path="/home/sjain441/MR-GR00T/MR_GR00T/nvidia/finetuned")
     commands: dict = {
-        "robot_1": "Pick up the blue pipe and pass it to your left",
+        "robot_1": "Pick up the blue pipe and pass it to your right",
         "robot_2": "Wait to receive the blue pipe from the left and place it in the bin on the right"
     }
     backbone_embedding_dim: int = 1536
