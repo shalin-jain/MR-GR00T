@@ -169,7 +169,8 @@ class MrGr00tMarlEnv(DirectMARLEnv):
         for robot_id, _ in self.robots.items():
             self._vla_inference(robot_id)
             # pass in vla backbone embedding and action as observation (TODO: make this its own function?)
-            vla_action = self.robots[robot_id]["vla_actions"][:, self.robots[robot_id]["vla_counter"], :].squeeze(1)
+            env_indices = torch.arange(self.scene.num_envs, device=self.device)
+            vla_action = self.robots[robot_id]["vla_actions"][env_indices, self.robots[robot_id]["vla_counter"], :].squeeze(1)
             obs[robot_id] = torch.concatenate([self.robots[robot_id]["vla_backbone_embedding"], vla_action], dim=-1)
         return obs
 

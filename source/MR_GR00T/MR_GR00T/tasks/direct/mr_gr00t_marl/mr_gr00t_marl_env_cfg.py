@@ -226,7 +226,7 @@ class MrGr00tMarlEnvCfg(DirectMARLEnvCfg):
     # multi-agent specification and spaces definition
     possible_agents = ["robot_1", "robot_2"]
     action_spaces = {"robot_1": len(joint_names), "robot_2": len(joint_names)}
-    observation_spaces = {"robot_1": 1, "robot_2": 1} # TODO define these properly
+    observation_spaces = {"robot_1": 1572, "robot_2": 1572} # TODO define these properly
     state_space = -1
     joint_names = joint_names
 

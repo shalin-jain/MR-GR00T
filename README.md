@@ -65,6 +65,7 @@ This project/repository is built on the IsaacLab extension template. It supports
         ```bash
         # use 'FULL_PATH_TO_isaaclab.sh|bat -p' instead of 'python' if Isaac Lab is not installed in Python venv or conda
         python scripts/<RL_LIBRARY>/train.py --task=<TASK_NAME>
+        python scripts/skrl/train.py --task Mr-Gr00t-Marl-Direct-v0 --algorithm MAPPO --num_envs 50 --enable_cameras --video --headless
         ```
 
     - Running a task with dummy agents:
