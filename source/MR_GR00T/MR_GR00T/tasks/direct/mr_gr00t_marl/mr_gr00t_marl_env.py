@@ -44,8 +44,9 @@ class MrGr00tMarlEnv(DirectMARLEnv):
         self.low_robot_joint_limits = robot_joint_limits[..., 0][:, self._joint_ids]
         self.high_robot_joint_limits = robot_joint_limits[..., 1][:, self._joint_ids]
 
-        # store object
+        # store object and bin for easy access
         self.object = self.scene["object"]
+        self.bin = self.scene["bin"]
 
         # load gr00t model, initialize relevant variables
         self.vla = Gr00tN1(self.cfg.vla.args)
@@ -63,10 +64,16 @@ class MrGr00tMarlEnv(DirectMARLEnv):
             # initialize vla actions
             robot["vla_actions"] = robot["articulation"].data.default_joint_pos[:, self._joint_ids].clone()
             robot["vla_actions"] = robot["vla_actions"].unsqueeze(1).repeat(1, self.vla_chunk, 1)  # expand out chunk dim
+
+            # initialize vla embedding
             robot["vla_backbone_embedding"] = torch.zeros((self.scene.num_envs, self.cfg.vla.backbone_embedding_dim), device=self.device)
+            robot["vla_state_embedding"] = torch.zeros((self.scene.num_envs, self.cfg.vla.state_embedding_dim), device=self.device)
 
             # get configured lanugage commands
             robot["vla_command"] = self.cfg.vla.commands[robot_id]
+
+            # initialize processed actions with default joint positions
+            self.processed_actions[robot_id] = robot["articulation"].data.default_joint_pos[:, self._joint_ids].clone()
 
     def _setup_scene(self):
         """
@@ -118,7 +125,7 @@ class MrGr00tMarlEnv(DirectMARLEnv):
         robot["vla_state"].set_joints_pos(joint_pos)
 
         # run VLA inference
-        goal, backbone_embedding = self.vla.get_new_goal(
+        goal, backbone_embedding, action_inputs = self.vla.get_new_goal(
             robot["vla_state"],
             robot["camera"],
             robot["vla_command"]
@@ -130,8 +137,16 @@ class MrGr00tMarlEnv(DirectMARLEnv):
 
         # update actions and embeddings for relevant envs
         robot["vla_actions"][env_ids, :, :] = goal_joint_pos[env_ids, :, :]
-        vla_backbone_embedding = backbone_embedding["backbone_features"][env_ids].mean(dim=1)
+
+        # masked mean pooling of backbone embedding
+        features = backbone_embedding["backbone_features"][env_ids]
+        mask = backbone_embedding["backbone_attention_mask"][env_ids].unsqueeze(-1).float()
+        vla_backbone_embedding = (features * mask).sum(dim=1) / mask.sum(dim=1).clamp(min=1)
         robot["vla_backbone_embedding"][env_ids] = vla_backbone_embedding.float()
+
+        # vla state embedding
+        state_embedding = action_inputs["state"][env_ids].squeeze(1)
+        robot["vla_state_embedding"][env_ids] = state_embedding.float()
 
         # update counters for relevant envs
         robot["vla_counter"][env_ids] = 0
@@ -144,10 +159,11 @@ class MrGr00tMarlEnv(DirectMARLEnv):
             actions (dict[str, torch.Tensor]): dictionary of actions per robot id.
         """
         for robot_id, robot in self.robots.items():
-            self._vla_inference(robot_id)
             env_indices = torch.arange(self.scene.num_envs, device=self.device)
             groot_action = robot["vla_actions"][env_indices, robot["vla_counter"], :]
-            self.processed_actions[robot_id] = actions[robot_id] + groot_action.squeeze()
+            self.processed_actions[robot_id] = (actions[robot_id]*self.cfg.action_scale) + groot_action.squeeze()
+            # self.processed_actions[robot_id] = groot_action.squeeze()  # FOR DEBUG
+            # self.processed_actions[robot_id] = robot['articulation'].data.default_joint_pos[:, self._joint_ids]  # FOR DEBUG
 
     def _apply_action(self) -> None:
         """
@@ -171,10 +187,18 @@ class MrGr00tMarlEnv(DirectMARLEnv):
         """
         obs = {}
         for robot_id, _ in self.robots.items():
-            # pass in vla backbone embedding and action as observation (TODO: make this its own function?)
+            self._vla_inference(robot_id)
+            # pass in vla backbone embedding, state embedding and action as observation (TODO: make this its own function?)
             env_indices = torch.arange(self.scene.num_envs, device=self.device)
             vla_action = self.robots[robot_id]["vla_actions"][env_indices, self.robots[robot_id]["vla_counter"], :].squeeze(1)
-            obs[robot_id] = torch.concatenate([self.robots[robot_id]["vla_backbone_embedding"], vla_action], dim=-1)
+            obs[robot_id] = torch.concatenate(
+                [
+                    self.robots[robot_id]["vla_backbone_embedding"],
+                    self.robots[robot_id]["vla_state_embedding"],
+                    vla_action
+                ],
+                dim=-1
+            )
         return obs
 
     def _get_rewards(self) -> dict[str, torch.Tensor]:
@@ -201,7 +225,7 @@ class MrGr00tMarlEnv(DirectMARLEnv):
         """
 
         # terminate if rod falls
-        return torch.where(self.scene["object"].data.root_pos_w[:, 2] < 0.75, 1, 0)
+        return torch.where(self.object.data.root_pos_w[:, 2] < 0.75, 1, 0)
 
     def _get_dones(self) -> tuple[dict, dict]:
         """
@@ -231,27 +255,41 @@ class MrGr00tMarlEnv(DirectMARLEnv):
         Args:
             env_ids: List of environment ids which must be reset
         """
-        self.scene.reset(env_ids)
+        # log success rate and final dist to bin
+        self.extras["log"] = {}
+        dist_to_bin = torch.norm(self.object.data.root_pos_w[:, :2] - self.bin.data.root_pos_w[:, :2], dim=-1)
+        self.extras["log"]["final_dist_to_bin"] = dist_to_bin[env_ids].mean()
+        self.extras["log"]["success_rate"] = torch.where(dist_to_bin[env_ids] < 0.05, 100.0, 0.0).mean()
 
         # set robot spawn configuration
-        # by default reset tries to move them to this position which errors
-        for _, robot in self.robots.items():
+        for robot_id, robot in self.robots.items():
             articulation = robot["articulation"]
+
+            # reset joint states
             articulation.write_joint_state_to_sim(
                 articulation.data.default_joint_pos[env_ids, :],
                 articulation.data.default_joint_vel[env_ids, :],
                 env_ids=env_ids
             )
 
-            # reset vla counters
-            robot["vla_counter"][env_ids] = self.vla_chunk-1
-        
+            # set joint position targets to default positions
+            default_joint_targets = articulation.data.default_joint_pos[env_ids][:, self._joint_ids]
+            articulation.set_joint_position_target(
+                default_joint_targets,
+                joint_ids=self._joint_ids,
+                env_ids=env_ids
+            )
+
+            # reset vla counters to 0
+            robot["vla_counter"][env_ids] = 0
+            robot["vla_actions"][env_ids] = default_joint_targets.unsqueeze(1).repeat(1, self.vla_chunk, 1)
+            robot["vla_backbone_embedding"][env_ids] = torch.zeros((env_ids.shape[0], self.cfg.vla.backbone_embedding_dim), device=self.device)
+
         # reset object states
-        env_origins = torch.concatenate(
-            [self.scene.env_origins[env_ids], torch.zeros((len(env_ids), 4), device=self.device)], dim=-1
-        )
+        default_object_pos = self.object.data.default_root_state[env_ids][:, :7].clone()
+        default_object_pos[:, :3] += self.scene.env_origins[env_ids, :3]
         self.object.write_root_pose_to_sim(
-            self.object.data.default_root_state[env_ids][:, :7] + env_origins, env_ids
+            default_object_pos, env_ids
         )
         self.object.write_root_velocity_to_sim(
             torch.zeros_like(self.object.data.default_root_state[env_ids][:, 7:]), env_ids

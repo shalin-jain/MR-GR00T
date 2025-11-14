@@ -122,7 +122,7 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
     robot_1_cfg: ArticulationCfg = GR1T2_CFG.replace(
         prim_path="{ENV_REGEX_NS}/robot_1",
         init_state=ArticulationCfg.InitialStateCfg(
-            pos=(-0.5, 0, 0.93),
+            pos=(-0.4, 0, 0.93),
             rot=(0.7071, 0, 0, 0.7071),
             joint_pos=initial_joint_pos,
             joint_vel=initial_joint_vel,
@@ -131,7 +131,7 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
     robot_2_cfg: ArticulationCfg = GR1T2_CFG.replace(
         prim_path="{ENV_REGEX_NS}/robot_2",
         init_state=ArticulationCfg.InitialStateCfg(
-            pos=(0.5, 0, 0.93),
+            pos=(0.4, 0, 0.93),
             rot=(0.7071, 0, 0, 0.7071),
             joint_pos=initial_joint_pos,
             joint_vel=initial_joint_vel,
@@ -143,7 +143,7 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
         height=160,
         width=256,
         offset=TiledCameraCfg.OffsetCfg(
-            pos=(-0.5, 0.12, 1.85418), rot=(-0.17246, 0.98502, 0.0, 0.0), convention="ros"
+            pos=(-0.4, 0.12, 1.85418), rot=(-0.17246, 0.98502, 0.0, 0.0), convention="ros"
         ),
         prim_path="{ENV_REGEX_NS}/robot_1_camera",
         update_period=0,
@@ -154,7 +154,7 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
         height=160,
         width=256,
         offset=TiledCameraCfg.OffsetCfg(
-            pos=(0.5, 0.12, 1.85418), rot=(-0.17246, 0.98502, 0.0, 0.0), convention="ros"
+            pos=(0.4, 0.12, 1.85418), rot=(-0.17246, 0.98502, 0.0, 0.0), convention="ros"
         ),
         prim_path="{ENV_REGEX_NS}/robot_2_camera",
         update_period=0,
@@ -175,7 +175,7 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
 
     object = RigidObjectCfg(
         prim_path="{ENV_REGEX_NS}/BlueExhaustPipe",
-        init_state=RigidObjectCfg.InitialStateCfg(pos=[-0.54904, 0.31, 1.2590], rot=[0, 0, 1.0, 0]),
+        init_state=RigidObjectCfg.InitialStateCfg(pos=[-0.44904, 0.41, 1.2590], rot=[0, 0, 1.0, 0]),
         spawn=UsdFileCfg(
             usd_path=f"{ISAACLAB_NUCLEUS_DIR}/Mimic/exhaust_pipe_task/exhaust_pipe_assets/blue_exhaust_pipe.usd",
             scale=(0.5, 0.5, 1.5),
@@ -185,7 +185,7 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
 
     bin = RigidObjectCfg(
         prim_path="{ENV_REGEX_NS}/BlueSortingBin",
-        init_state=RigidObjectCfg.InitialStateCfg(pos=[0.66605, 0.39, 0.98634], rot=[1.0, 0, 0, 0]),
+        init_state=RigidObjectCfg.InitialStateCfg(pos=[0.56605, 0.39, 0.98634], rot=[1.0, 0, 0, 0]),
         spawn=UsdFileCfg(
             usd_path=f"{ISAACLAB_NUCLEUS_DIR}/Mimic/exhaust_pipe_task/exhaust_pipe_assets/blue_sorting_bin.usd",
             scale=(1.0, 1.7, 1.0),
@@ -216,17 +216,18 @@ class VLACfg:
         "robot_2": "Wait to receive the blue pipe from the left and place it in the bin on the right"
     }
     backbone_embedding_dim: int = 1536
+    state_embedding_dim : int = 64
 
 @configclass
 class MrGr00tMarlEnvCfg(DirectMARLEnvCfg):
     # env
     decimation = 5
-    episode_length_s = 20.0
+    episode_length_s = 5.0
 
     # multi-agent specification and spaces definition
     possible_agents = ["robot_1", "robot_2"]
     action_spaces = {"robot_1": len(joint_names), "robot_2": len(joint_names)}
-    observation_spaces = {"robot_1": 1572, "robot_2": 1572} # TODO define these properly
+    observation_spaces = {"robot_1": 1536 + 64 + 36, "robot_2": 1536 + 64 + 36} # TODO define these better
     state_space = -1
     joint_names = joint_names
 
@@ -237,7 +238,10 @@ class MrGr00tMarlEnvCfg(DirectMARLEnvCfg):
     sim: SimulationCfg = SimulationCfg(dt=1 / 100, render_interval=decimation)
 
     # scene
-    scene: InteractiveSceneCfg = ObjectTableSceneCfg(num_envs=4096, env_spacing=4.0, replicate_physics=True)
+    scene: InteractiveSceneCfg = ObjectTableSceneCfg(num_envs=16, env_spacing=4.0, replicate_physics=True)
+
+    # actions
+    action_scale: float = 0.1  # scale for actions
 
     def __post_init__(self):
         """Post initialization."""
