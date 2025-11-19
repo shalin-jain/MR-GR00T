@@ -175,7 +175,7 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
 
     object = RigidObjectCfg(
         prim_path="{ENV_REGEX_NS}/BlueExhaustPipe",
-        init_state=RigidObjectCfg.InitialStateCfg(pos=[-0.44904, 0.41, 1.2590], rot=[0, 0, 1.0, 0]),
+        init_state=RigidObjectCfg.InitialStateCfg(pos=[-0.44904, 0.31, 1.2590], rot=[0, 0, 1.0, 0]),
         spawn=UsdFileCfg(
             usd_path=f"{ISAACLAB_NUCLEUS_DIR}/Mimic/exhaust_pipe_task/exhaust_pipe_assets/blue_exhaust_pipe.usd",
             scale=(0.5, 0.5, 1.5),
