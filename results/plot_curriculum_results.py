@@ -97,6 +97,8 @@ def plot_curriculum_results(results_dict, output_path=None):
         'base': '#F6CF95',
         'curr': '#3F784C',
         'no-curr': '#3F784C',
+        'dense': '#3F784C',
+        'sparse': '#3F784C',
     }
 
     line_style = {
@@ -104,6 +106,8 @@ def plot_curriculum_results(results_dict, output_path=None):
         'base': '-',
         'curr': '-',
         'no-curr': '--',
+        'dense': '-',
+        'sparse': '--',
     }
 
     # Track min and max values for y-axis

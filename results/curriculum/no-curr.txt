@@ -2,78 +2,142 @@
        Object XY ranges: [0.000, 0.000] x [0.000, 0.000]
        Bin XY ranges: [0.000, 0.000] x [0.000, 0.000]
 [INFO] Episodes simulated: 50
-[INFO] Resetting 50 environments. Success Rate: 90.00%, Final Dist to Bin: 0.212 m
+[INFO] Resetting 50 environments. Success Rate: 90.00%, Final Dist to Bin: 0.192 m
 [INFO] Episodes simulated: 100
-[INFO] Resetting 50 environments. Success Rate: 90.00%, Final Dist to Bin: 0.187 m
+[INFO] Resetting 50 environments. Success Rate: 86.00%, Final Dist to Bin: 0.197 m
 [INFO] Episodes simulated: 150
-[INFO] Resetting 50 environments. Success Rate: 90.00%, Final Dist to Bin: 0.193 m
+[INFO] Resetting 50 environments. Success Rate: 90.00%, Final Dist to Bin: 0.207 m
 [INFO] Episodes simulated: 200
-[INFO] Resetting 50 environments. Success Rate: 90.00%, Final Dist to Bin: 0.188 m
-[CURRICULUM]: Weighted success rate over last 200 episodes (4 resets): 0.900
-[CURRICULUM]: Expanded ranges - Object X: [-0.010, 0.010], Object Y: [-0.010, 0.010], Bin X: [0.000, 0.000], Bin Y: [0.000, 0.000]
+[INFO] Resetting 50 environments. Success Rate: 92.00%, Final Dist to Bin: 0.190 m
+[CURRICULUM]: Weighted success rate over last 200 episodes (4 resets): 0.895
+[CURRICULUM]: Expanded ranges - Object X: [-0.005, 0.005], Object Y: [-0.005, 0.005], Bin X: [0.000, 0.000], Bin Y: [0.000, 0.000]
 [INFO] Curriculum expanded to level 1
-       Object XY ranges: [-0.010, 0.010] x [-0.010, 0.010]
+       Object XY ranges: [-0.005, 0.005] x [-0.005, 0.005]
        Bin XY ranges: [0.000, 0.000] x [0.000, 0.000]
 /home/sjain441/MR-GR00T/MR_GR00T/source/MR_GR00T/MR_GR00T/tasks/direct/sg_gr00t_rl/mdp/curriculum.py:246: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
   "curriculum/weighted_success_rate": torch.tensor(self.weighted_success_rate * 100.0, device=self.device),  # as percentage
 [INFO] Episodes simulated: 250
-[INFO] Resetting 50 environments. Success Rate: 88.00%, Final Dist to Bin: 0.190 m
+[INFO] Resetting 50 environments. Success Rate: 90.00%, Final Dist to Bin: 0.194 m
 [INFO] Episodes simulated: 300
-[INFO] Resetting 50 environments. Success Rate: 90.00%, Final Dist to Bin: 0.183 m
+[INFO] Resetting 50 environments. Success Rate: 94.00%, Final Dist to Bin: 0.182 m
 [INFO] Episodes simulated: 350
-[INFO] Resetting 50 environments. Success Rate: 96.00%, Final Dist to Bin: 0.190 m
+[INFO] Resetting 50 environments. Success Rate: 88.00%, Final Dist to Bin: 0.192 m
 [INFO] Episodes simulated: 400
-[INFO] Resetting 50 environments. Success Rate: 90.00%, Final Dist to Bin: 0.199 m
+[INFO] Resetting 50 environments. Success Rate: 92.00%, Final Dist to Bin: 0.187 m
 [CURRICULUM]: Weighted success rate over last 200 episodes (4 resets): 0.910
-[CURRICULUM]: Expanded ranges - Object X: [-0.020, 0.020], Object Y: [-0.020, 0.020], Bin X: [0.000, 0.000], Bin Y: [0.000, 0.000]
+[CURRICULUM]: Expanded ranges - Object X: [-0.010, 0.010], Object Y: [-0.010, 0.010], Bin X: [0.000, 0.000], Bin Y: [0.000, 0.000]
 [INFO] Curriculum expanded to level 2
-       Object XY ranges: [-0.020, 0.020] x [-0.020, 0.020]
+       Object XY ranges: [-0.010, 0.010] x [-0.010, 0.010]
        Bin XY ranges: [0.000, 0.000] x [0.000, 0.000]
 [INFO] Episodes simulated: 450
-[INFO] Resetting 50 environments. Success Rate: 82.00%, Final Dist to Bin: 0.209 m
+[INFO] Resetting 50 environments. Success Rate: 90.00%, Final Dist to Bin: 0.194 m
 [INFO] Episodes simulated: 500
-[INFO] Resetting 50 environments. Success Rate: 82.00%, Final Dist to Bin: 0.183 m
+[INFO] Resetting 50 environments. Success Rate: 86.00%, Final Dist to Bin: 0.196 m
 [INFO] Episodes simulated: 550
-[INFO] Resetting 50 environments. Success Rate: 86.00%, Final Dist to Bin: 0.200 m
+[INFO] Resetting 50 environments. Success Rate: 82.00%, Final Dist to Bin: 0.198 m
 [INFO] Episodes simulated: 600
-[INFO] Resetting 50 environments. Success Rate: 90.00%, Final Dist to Bin: 0.187 m
-[CURRICULUM]: Weighted success rate over last 200 episodes (4 resets): 0.850
-[CURRICULUM]: Expanded ranges - Object X: [-0.030, 0.030], Object Y: [-0.030, 0.030], Bin X: [0.000, 0.000], Bin Y: [0.000, 0.000]
+[INFO] Resetting 50 environments. Success Rate: 92.00%, Final Dist to Bin: 0.190 m
+[CURRICULUM]: Weighted success rate over last 200 episodes (4 resets): 0.875
+[CURRICULUM]: Expanded ranges - Object X: [-0.015, 0.015], Object Y: [-0.015, 0.015], Bin X: [0.000, 0.000], Bin Y: [0.000, 0.000]
 [INFO] Curriculum expanded to level 3
-       Object XY ranges: [-0.030, 0.030] x [-0.030, 0.030]
+       Object XY ranges: [-0.015, 0.015] x [-0.015, 0.015]
        Bin XY ranges: [0.000, 0.000] x [0.000, 0.000]
 [INFO] Episodes simulated: 650
-[INFO] Resetting 50 environments. Success Rate: 80.00%, Final Dist to Bin: 0.204 m
+[INFO] Resetting 50 environments. Success Rate: 82.00%, Final Dist to Bin: 0.194 m
 [INFO] Episodes simulated: 700
-[INFO] Resetting 50 environments. Success Rate: 80.00%, Final Dist to Bin: 0.192 m
+[INFO] Resetting 50 environments. Success Rate: 90.00%, Final Dist to Bin: 0.194 m
 [INFO] Episodes simulated: 750
-[INFO] Resetting 50 environments. Success Rate: 82.00%, Final Dist to Bin: 0.198 m
+[INFO] Resetting 50 environments. Success Rate: 94.00%, Final Dist to Bin: 0.188 m
 [INFO] Episodes simulated: 800
-[INFO] Resetting 50 environments. Success Rate: 80.00%, Final Dist to Bin: 0.202 m
-[CURRICULUM]: Weighted success rate over last 200 episodes (4 resets): 0.805
-[CURRICULUM]: Expanded ranges - Object X: [-0.040, 0.040], Object Y: [-0.040, 0.040], Bin X: [0.000, 0.000], Bin Y: [0.000, 0.000]
+[INFO] Resetting 50 environments. Success Rate: 72.00%, Final Dist to Bin: 0.195 m
+[CURRICULUM]: Weighted success rate over last 200 episodes (4 resets): 0.845
+[CURRICULUM]: Expanded ranges - Object X: [-0.020, 0.020], Object Y: [-0.020, 0.020], Bin X: [0.000, 0.000], Bin Y: [0.000, 0.000]
 [INFO] Curriculum expanded to level 4
-       Object XY ranges: [-0.040, 0.040] x [-0.040, 0.040]
+       Object XY ranges: [-0.020, 0.020] x [-0.020, 0.020]
        Bin XY ranges: [0.000, 0.000] x [0.000, 0.000]
 [INFO] Episodes simulated: 850
-[INFO] Resetting 50 environments. Success Rate: 72.00%, Final Dist to Bin: 0.231 m
+[INFO] Resetting 50 environments. Success Rate: 86.00%, Final Dist to Bin: 0.190 m
 [INFO] Episodes simulated: 900
-[INFO] Resetting 50 environments. Success Rate: 62.00%, Final Dist to Bin: 0.224 m
+[INFO] Resetting 50 environments. Success Rate: 84.00%, Final Dist to Bin: 0.187 m
 [INFO] Episodes simulated: 950
-[INFO] Resetting 50 environments. Success Rate: 66.00%, Final Dist to Bin: 0.250 m
+[INFO] Resetting 50 environments. Success Rate: 90.00%, Final Dist to Bin: 0.199 m
 [INFO] Episodes simulated: 1000
-[INFO] Resetting 50 environments. Success Rate: 56.00%, Final Dist to Bin: 0.273 m
-[CURRICULUM]: Weighted success rate over last 200 episodes (4 resets): 0.640
-[CURRICULUM]: Expanded ranges - Object X: [-0.050, 0.050], Object Y: [-0.050, 0.050], Bin X: [0.000, 0.000], Bin Y: [0.000, 0.000]
+[INFO] Resetting 50 environments. Success Rate: 86.00%, Final Dist to Bin: 0.198 m
+[CURRICULUM]: Weighted success rate over last 200 episodes (4 resets): 0.865
+[CURRICULUM]: Expanded ranges - Object X: [-0.025, 0.025], Object Y: [-0.025, 0.025], Bin X: [0.000, 0.000], Bin Y: [0.000, 0.000]
 [INFO] Curriculum expanded to level 5
-       Object XY ranges: [-0.050, 0.050] x [-0.050, 0.050]
+       Object XY ranges: [-0.025, 0.025] x [-0.025, 0.025]
        Bin XY ranges: [0.000, 0.000] x [0.000, 0.000]
 [INFO] Episodes simulated: 1050
-[INFO] Resetting 50 environments. Success Rate: 50.00%, Final Dist to Bin: 0.309 m
+[INFO] Resetting 50 environments. Success Rate: 82.00%, Final Dist to Bin: 0.199 m
 [INFO] Episodes simulated: 1100
-[INFO] Resetting 50 environments. Success Rate: 52.00%, Final Dist to Bin: 0.321 m
+[INFO] Resetting 50 environments. Success Rate: 76.00%, Final Dist to Bin: 0.202 m
 [INFO] Episodes simulated: 1150
-[INFO] Resetting 50 environments. Success Rate: 46.00%, Final Dist to Bin: 0.290 m
+[INFO] Resetting 50 environments. Success Rate: 82.00%, Final Dist to Bin: 0.194 m
 [INFO] Episodes simulated: 1200
-[INFO] Resetting 50 environments. Success Rate: 64.00%, Final Dist to Bin: 0.340 m
-[CURRICULUM]: Weighted success rate over last 200 episodes (4 resets): 0.530
+[INFO] Resetting 50 environments. Success Rate: 84.00%, Final Dist to Bin: 0.208 m
+[CURRICULUM]: Weighted success rate over last 200 episodes (4 resets): 0.810
+[CURRICULUM]: Expanded ranges - Object X: [-0.030, 0.030], Object Y: [-0.030, 0.030], Bin X: [0.000, 0.000], Bin Y: [0.000, 0.000]
+[INFO] Curriculum expanded to level 6
+       Object XY ranges: [-0.030, 0.030] x [-0.030, 0.030]
+       Bin XY ranges: [0.000, 0.000] x [0.000, 0.000]
+[INFO] Episodes simulated: 1250
+[INFO] Resetting 50 environments. Success Rate: 74.00%, Final Dist to Bin: 0.205 m
+[INFO] Episodes simulated: 1300
+[INFO] Resetting 50 environments. Success Rate: 90.00%, Final Dist to Bin: 0.197 m
+[INFO] Episodes simulated: 1350
+[INFO] Resetting 50 environments. Success Rate: 78.00%, Final Dist to Bin: 0.198 m
+[INFO] Episodes simulated: 1400
+[INFO] Resetting 50 environments. Success Rate: 84.00%, Final Dist to Bin: 0.199 m
+[CURRICULUM]: Weighted success rate over last 200 episodes (4 resets): 0.815
+[CURRICULUM]: Expanded ranges - Object X: [-0.035, 0.035], Object Y: [-0.035, 0.035], Bin X: [0.000, 0.000], Bin Y: [0.000, 0.000]
+[INFO] Curriculum expanded to level 7
+       Object XY ranges: [-0.035, 0.035] x [-0.035, 0.035]
+       Bin XY ranges: [0.000, 0.000] x [0.000, 0.000]
+[INFO] Episodes simulated: 1450
+[INFO] Resetting 50 environments. Success Rate: 76.00%, Final Dist to Bin: 0.239 m
+[INFO] Episodes simulated: 1500
+[INFO] Resetting 50 environments. Success Rate: 76.00%, Final Dist to Bin: 0.219 m
+[INFO] Episodes simulated: 1550
+[INFO] Resetting 50 environments. Success Rate: 74.00%, Final Dist to Bin: 0.211 m
+[INFO] Episodes simulated: 1600
+[INFO] Resetting 50 environments. Success Rate: 84.00%, Final Dist to Bin: 0.195 m
+[CURRICULUM]: Weighted success rate over last 200 episodes (4 resets): 0.775
+[CURRICULUM]: Expanded ranges - Object X: [-0.040, 0.040], Object Y: [-0.040, 0.040], Bin X: [0.000, 0.000], Bin Y: [0.000, 0.000]
+[INFO] Curriculum expanded to level 8
+       Object XY ranges: [-0.040, 0.040] x [-0.040, 0.040]
+       Bin XY ranges: [0.000, 0.000] x [0.000, 0.000]
+[INFO] Episodes simulated: 1650
+[INFO] Resetting 50 environments. Success Rate: 62.00%, Final Dist to Bin: 0.239 m
+[INFO] Episodes simulated: 1700
+[INFO] Resetting 50 environments. Success Rate: 66.00%, Final Dist to Bin: 0.322 m
+[INFO] Episodes simulated: 1750
+[INFO] Resetting 50 environments. Success Rate: 56.00%, Final Dist to Bin: 0.363 m
+[INFO] Episodes simulated: 1800
+[INFO] Resetting 50 environments. Success Rate: 60.00%, Final Dist to Bin: 0.270 m
+[CURRICULUM]: Weighted success rate over last 200 episodes (4 resets): 0.610
+[CURRICULUM]: Expanded ranges - Object X: [-0.045, 0.045], Object Y: [-0.045, 0.045], Bin X: [0.000, 0.000], Bin Y: [0.000, 0.000]
+[INFO] Curriculum expanded to level 9
+       Object XY ranges: [-0.045, 0.045] x [-0.045, 0.045]
+       Bin XY ranges: [0.000, 0.000] x [0.000, 0.000]
+[INFO] Episodes simulated: 1850
+[INFO] Resetting 50 environments. Success Rate: 62.00%, Final Dist to Bin: 0.314 m
+[INFO] Episodes simulated: 1900
+[INFO] Resetting 50 environments. Success Rate: 64.00%, Final Dist to Bin: 0.311 m
+[INFO] Episodes simulated: 1950
+[INFO] Resetting 50 environments. Success Rate: 58.00%, Final Dist to Bin: 0.323 m
+[INFO] Episodes simulated: 2000
+[INFO] Resetting 50 environments. Success Rate: 54.00%, Final Dist to Bin: 0.318 m
+[CURRICULUM]: Weighted success rate over last 200 episodes (4 resets): 0.595
+[CURRICULUM]: Expanded ranges - Object X: [-0.050, 0.050], Object Y: [-0.050, 0.050], Bin X: [0.000, 0.000], Bin Y: [0.000, 0.000]
+[INFO] Curriculum expanded to level 10
+       Object XY ranges: [-0.050, 0.050] x [-0.050, 0.050]
+       Bin XY ranges: [0.000, 0.000] x [0.000, 0.000]
+[INFO] Episodes simulated: 2050
+[INFO] Resetting 50 environments. Success Rate: 66.00%, Final Dist to Bin: 0.245 m
+[INFO] Episodes simulated: 2100
+[INFO] Resetting 50 environments. Success Rate: 62.00%, Final Dist to Bin: 0.245 m
+[INFO] Episodes simulated: 2150
+[INFO] Resetting 50 environments. Success Rate: 38.00%, Final Dist to Bin: 0.316 m
+[INFO] Episodes simulated: 2200
+[INFO] Resetting 50 environments. Success Rate: 58.00%, Final Dist to Bin: 0.269 m
