@@ -225,17 +225,17 @@ class CurriculumCfg:
     """Configuration for curriculum learning."""
 
     # Success rate thresholds
-    success_threshold: float = 0.85
+    success_threshold: float = 0.80
     """Success rate threshold (0-1) to trigger curriculum expansion. High because VLA starts strong."""
 
     # XY range parameters for object offset
-    object_x_min_start: float = -0.02
+    object_x_min_start: float = -0.03
     """Initial minimum X offset for object spawn (m)."""
-    object_x_max_start: float = 0.02
+    object_x_max_start: float = 0.03
     """Initial maximum X offset for object spawn (m)."""
-    object_y_min_start: float = -0.02
+    object_y_min_start: float = -0.03
     """Initial minimum Y offset for object spawn (m)."""
-    object_y_max_start: float = 0.02
+    object_y_max_start: float = 0.03
     """Initial maximum Y offset for object spawn (m)."""
 
     object_x_min_final: float = -0.1
@@ -248,22 +248,22 @@ class CurriculumCfg:
     """Final maximum Y offset for object spawn (m)."""
 
     # XY range parameters for bin offset
-    bin_x_min_start: float = -0.01
+    bin_x_min_start: float = 0.0
     """Initial minimum X offset for bin spawn (m)."""
-    bin_x_max_start: float = 0.01
+    bin_x_max_start: float = 0.0
     """Initial maximum X offset for bin spawn (m)."""
-    bin_y_min_start: float = -0.01
+    bin_y_min_start: float = 0.0
     """Initial minimum Y offset for bin spawn (m)."""
-    bin_y_max_start: float = 0.01
+    bin_y_max_start: float = 0.0
     """Initial maximum Y offset for bin spawn (m)."""
 
-    bin_x_min_final: float = -0.1
+    bin_x_min_final: float = 0.0
     """Final minimum X offset for bin spawn (m)."""
-    bin_x_max_final: float = 0.1
+    bin_x_max_final: float = 0.0
     """Final maximum X offset for bin spawn (m)."""
-    bin_y_min_final: float = -0.1
+    bin_y_min_final: float = 0.0
     """Final minimum Y offset for bin spawn (m)."""
-    bin_y_max_final: float = 0.1
+    bin_y_max_final: float = 0.0
     """Final maximum Y offset for bin spawn (m)."""
 
     # Expansion parameters
@@ -287,9 +287,9 @@ class SgGr00tRlEnvCfg(DirectRLEnvCfg):
     action_space = len(joint_names)  # Will be overridden if residual_arms_only=True
     observation_space = 1536 + len(joint_names) + len(joint_names) # vla, joint positions, actions
 
-    # bin dimensions are estimated as 0.25m x 0.5m x 0.1m
+    # bin dimensions are estimated as 0.25m x 0.425m x 0.1m
     bin_half_width_x: float = 0.25 / 2   # 0.25m / 2
-    bin_half_width_y: float = 0.5 / 2  # 0.5m / 2
+    bin_half_width_y: float = 0.425 / 2  # 0.425m / 2
     bin_half_height_z: float = 0.1 / 2   # 0.1m / 2
 
     # synchronized reset for efficient VLA inference
@@ -313,7 +313,7 @@ class SgGr00tRlEnvCfg(DirectRLEnvCfg):
     scene: InteractiveSceneCfg = ObjectTableSceneCfg(num_envs=16, env_spacing=4.0, replicate_physics=True)
 
     # actions
-    action_scale: float = 2.0  # scale for actions - INCREASED to allow larger residual corrections
+    action_scale: float = 1.0  # scale for actions
     residual_arms_only: bool = True  # if True, residual policy only controls arm joints (0-13), hands use VLA only
 
     # observations

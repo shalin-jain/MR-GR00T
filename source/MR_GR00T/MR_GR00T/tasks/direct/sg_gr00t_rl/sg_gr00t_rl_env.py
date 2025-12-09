@@ -417,7 +417,7 @@ class SgGr00tRlEnv(DirectRLEnv):
         # check if object is within bin bounds in each dimension
         within_x = torch.abs(rel_pos[:, 0]) < bin_half_width_x
         within_y = torch.abs(rel_pos[:, 1]) < bin_half_width_y
-        within_z = torch.abs(rel_pos[:, 2]) < bin_half_height_z
+        within_z = torch.abs(rel_pos[:, 2]) < bin_half_height_z * 2  # allow some height for object to be above bin base
 
         # success only if within bounds in all three dimensions
         return within_x & within_y & within_z
@@ -439,21 +439,23 @@ class SgGr00tRlEnv(DirectRLEnv):
         )
         success_rew = torch.where(success, 10.0, 0.0)
 
-        # action rate penalty: penalize large changes in actions to encourage smoothness
-        # compute L2 norm of action differences
-        action_rate = torch.norm(self.processed_actions - self.previous_actions, dim=-1)
-        action_rate_penalty = -1.0e-1 * action_rate
+        # object lifted reward, reward for lifting object above defined height threshold
+        object_height = self.object.data.root_pos_w[:, 2]
+        default_object_height = self.object.data.default_root_state[0, 2]
+        height_threshold = default_object_height + 0.02
+        lifted = object_height > height_threshold
+        lift_rew = torch.where(lifted, 0.01, 0.0)
+        self.extras["log"]["lift_reward"] = lift_rew.mean()
 
-        # action norm penalty: penalize large residual actions to encourage minimal intervention
-        # only penalize the residual (policy output), not the VLA baseline
-        residual_norm = torch.norm(self.residual_actions, dim=-1)
-        action_norm_penalty = -1.0e-1 * residual_norm
+        # object distance reward, exponentially decaying reward based on distance to bin
+        # object_pos = self.object.data.root_pos_w
+        # bin_pos = self.bin.data.root_pos_w
+        # rel_pos = object_pos - bin_pos
+        # dist_to_bin = torch.norm(rel_pos[:, :3], dim=-1)
+        # dist_rew = 0.01 * torch.exp(-2 * dist_to_bin)
+        # self.extras["log"]["dist_reward"] = dist_rew.mean()
 
-        # log action rate penalty
-        self.extras["log"]["action_rate_penalty"] = action_rate_penalty.mean()
-        self.extras["log"]["action_norm_penalty"] = action_norm_penalty.mean()
-
-        return success_rew + action_rate_penalty + action_norm_penalty
+        return success_rew # + lift_rew # + dist_rew
 
     def _get_terminations(self) -> torch.Tensor:
         """
@@ -483,7 +485,7 @@ class SgGr00tRlEnv(DirectRLEnv):
             Shape of individual tensors is (num_envs,).
         """
         time_outs = self.episode_length_buf > self.max_episode_length
-        dones = torch.logical_or(
+        dones = torch.logical_and(
             time_outs,
             self._get_terminations()
         )
@@ -569,19 +571,24 @@ class SgGr00tRlEnv(DirectRLEnv):
         )
 
         # reset bin states (if curriculum enabled)
+        default_bin_state = self.bin.data.default_root_state[env_ids].clone()
         if self.curriculum_manager is not None:
             # sample bin position from curriculum
             base_bin_pos = self.bin.data.default_root_state[0, :3].clone()
             bin_positions = self.curriculum_manager.sample_bin_position(base_bin_pos, len(env_ids))
-            default_bin_state = self.bin.data.default_root_state[env_ids].clone()
             default_bin_state[:, :3] = bin_positions + self.scene.env_origins[env_ids, :3]
+            default_bin_state[:, 2] += 0.005  # slight offset to prevent initial collision
+        else:
+            # use default position
+            default_bin_state[:, :3] += self.scene.env_origins[env_ids, :3]
+            default_bin_state[:, 2] += 0.005  # slight offset to prevent initial collision
 
-            self.bin.write_root_pose_to_sim(
-                default_bin_state[:, :7], env_ids
-            )
-            self.bin.write_root_velocity_to_sim(
-                torch.zeros_like(self.bin.data.default_root_state[env_ids][:, 7:]), env_ids
-            )
+        self.bin.write_root_pose_to_sim(
+            default_bin_state[:, :7], env_ids
+        )
+        self.bin.write_root_velocity_to_sim(
+            torch.zeros_like(self.bin.data.default_root_state[env_ids][:, 7:]), env_ids
+        )
 
         # reset table
         default_table_state = self.table.data.default_root_state[env_ids].clone()

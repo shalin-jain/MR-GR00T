@@ -38,6 +38,8 @@ parser.add_argument(
     "--distributed", action="store_true", default=False, help="Run training with multiple GPUs or nodes."
 )
 parser.add_argument("--checkpoint", type=str, default=None, help="Path to model checkpoint to resume training.")
+parser.add_argument("--bc_checkpoint", type=str, default=None,
+                    help="Path to behavioral cloning checkpoint to initialize policy before RL training")
 parser.add_argument("--max_iterations", type=int, default=None, help="RL Policy training iterations.")
 parser.add_argument("--export_io_descriptors", action="store_true", default=False, help="Export IO descriptors.")
 parser.add_argument(
@@ -214,6 +216,53 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     if resume_path:
         print(f"[INFO] Loading model checkpoint from: {resume_path}")
         runner.agent.load(resume_path)
+
+    # load BC checkpoint for warm-start (if specified)
+    if args_cli.bc_checkpoint is not None:
+        import torch
+        print(f"\n[INFO] Loading BC checkpoint for warm-start: {args_cli.bc_checkpoint}")
+        try:
+            checkpoint = torch.load(args_cli.bc_checkpoint, map_location=env.device)
+
+            # Load policy weights
+            if 'model_state_dict' in checkpoint:
+                # BC checkpoint format
+                bc_state_dict = checkpoint['model_state_dict']
+
+                # Map BC model weights to PPO policy network
+                # BC model has keys like: 'net.0.weight', 'net.0.bias', 'net.2.weight', ...
+                # PPO model (instantiated from YAML) expects keys like: 'net_container.0.weight', 'net_container.0.bias', ...
+                # Rename 'net.' to 'net_container.' in BC checkpoint keys
+                mapped_state_dict = {}
+                for key, value in bc_state_dict.items():
+                    if key.startswith('net.'):
+                        new_key = 'net_container.' + key[4:]  # Replace 'net.' with 'net_container.'
+                        mapped_state_dict[new_key] = value
+                    else:
+                        mapped_state_dict[key] = value
+
+                policy_model = runner.agent.models["policy"]
+                result = policy_model.load_state_dict(mapped_state_dict, strict=False)
+                print(f"[INFO] BC policy weights loaded: {len(bc_state_dict)} keys")
+                print(f"[INFO] Missing keys: {result.missing_keys}")
+                print(f"[INFO] Unexpected keys: {result.unexpected_keys}")
+                print(f"[INFO] BC validation loss: {checkpoint.get('val_loss', 'N/A')}")
+                print(f"[INFO] BC trained for {checkpoint.get('epoch', 'N/A')} epochs")
+
+                if 'metadata' in checkpoint:
+                    print(f"[INFO] BC dataset info:")
+                    for key, val in checkpoint['metadata'].items():
+                        print(f"  - {key}: {val}")
+            else:
+                # Standard checkpoint format
+                runner.agent.models["policy"].load_state_dict(checkpoint, strict=False)
+                print(f"[INFO] Policy weights loaded from checkpoint")
+
+            print(f"[INFO] Starting RL finetuning from BC initialization...\n")
+
+        except Exception as e:
+            print(f"[WARNING] Failed to load BC checkpoint: {e}")
+            print(f"[WARNING] Continuing with random initialization...")
 
     # run training
     runner.run()

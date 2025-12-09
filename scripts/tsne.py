@@ -113,8 +113,8 @@ def main():
         # --- 1. Manually set object positions ---
         # define a randomization range (relative to env origin)
         # randomize X position only, keep Y fixed
-        # x_coords = ((torch.rand(num_envs, device=device) - 0.5) * 0.25) - 0.5  # -0.75m to +0.75m
-        x_coords = torch.zeros(num_envs, device=device) - 0.5  # -0.75m to +0.75m
+        x_coords = ((torch.rand(num_envs, device=device) - 0.5) * 0.25) - 0.5  # -0.75m to +0.75m
+        # x_coords = torch.zeros(num_envs, device=device) - 0.5  # -0.75m to +0.75m
         y_coords = ((torch.rand(num_envs, device=device) - 0.5) * 0.1) + 0.31  # Fixed at 0.0m
         # y_coords = torch.zeros(num_envs, device=device) + 0.31  # Fixed at 0.0m
         # Use the object's configured initial Z height (1.2590m) to keep it visible on the table

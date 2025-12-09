@@ -20,7 +20,7 @@ models:
     network:
       - name: net
         input: OBSERVATIONS
-        layers: [1024, 512, 512]
+        layers: [512, 512]
         activations: elu
     output: ACTIONS
     output_activation: tanh  # Bound actions to [-1, 1]
@@ -29,14 +29,14 @@ models:
     zero_init_last_layer: True
     initialization: orthogonal_
     initialization_kwargs:
-      gain: 0.3
+      gain: 0.2
   value:
     class: DeterministicMixin
     clip_actions: False
     network:
       - name: net
         input: OBSERVATIONS
-        layers: [1024, 512, 512]
+        layers: [512, 512]
         activations: elu
     output: ONE
 
@@ -52,12 +52,12 @@ memory:
 # https://skrl.readthedocs.io/en/latest/api/agents/ppo.html
 agent:
   class: PPO
-  rollouts: 300
-  learning_epochs: 20
+  rollouts: 75
+  learning_epochs: 10
   mini_batches: 5
-  discount_factor: 0.99
+  discount_factor: 0.999
   lambda: 0.95
-  learning_rate: [2.5e-04, 1.0e-03]  # [policy (actor), value (critic)] learning rates
+  learning_rate: [1.0e-04, 5.0e-03]  # [policy (actor), value (critic)] learning rates
   # learning_rate_scheduler: KLAdaptiveLR
   # learning_rate_scheduler_kwargs:
   #   kl_threshold: 0.016
@@ -72,7 +72,7 @@ agent:
   value_clip: 0.2
   clip_predicted_values: True
   entropy_loss_scale: 0.00
-  value_loss_scale: 1.0
+  value_loss_scale: 0.5
   kl_threshold: 0.0
   rewards_shaper_scale: 1.0
   time_limit_bootstrap: False
@@ -92,5 +92,5 @@ agent:
 # https://skrl.readthedocs.io/en/latest/api/trainers/sequential.html
 trainer:
   class: SequentialTrainer
-  timesteps: 100000
+  timesteps: 50000
   environment_info: log

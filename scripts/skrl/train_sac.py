@@ -27,7 +27,7 @@ parser.add_argument("--num_envs", type=int, default=64, help="Number of environm
 parser.add_argument("--task", type=str, default="Sg-Gr00t-Rl-Direct-v0", help="Name of the task.")
 parser.add_argument("--seed", type=int, default=None, help="Seed used for the environment")
 parser.add_argument("--max_iterations", type=int, default=None, help="Maximum training timesteps.")
-parser.add_argument("--zero_init_last_layer", action="store_true", default=False, 
+parser.add_argument("--zero_init_last_layer", action="store_true", default=False,
                     help="Initialize last layer of actor to zeros to center distribution about 0")
 parser.add_argument("--orthogonal_init", action="store_true", default=False,
                     help="Use orthogonal initialization for network weights")
@@ -97,7 +97,7 @@ class StochasticActor(GaussianMixin, Model):
         # Apply initialization
         if orthogonal_init:
             self._apply_orthogonal_init(orthogonal_gain)
-        
+
         if zero_init_last:
             self._zero_init_last_layer()
 
@@ -172,69 +172,69 @@ class Critic(DeterministicMixin, Model):
 
 def main():
     """Train with SAC agent."""
-    
+
     # Load configuration from the environment's registered config
     env_spec = gym.spec(args_cli.task)
     cfg_entry_point = env_spec.kwargs.get("skrl_sac_cfg_entry_point")
-    
+
     # Parse the entry point to get the module and file
     if cfg_entry_point:
         import importlib
         from omegaconf import OmegaConf
-        
+
         module_path, file_name = cfg_entry_point.split(":")
         module = importlib.import_module(module_path)
         cfg_file_path = os.path.join(os.path.dirname(module.__file__), file_name)
-        
+
         # Load configuration from YAML
         agent_cfg = OmegaConf.to_container(OmegaConf.load(cfg_file_path), resolve=True)
     else:
         raise ValueError(f"No SAC config entry point found for task {args_cli.task}")
-    
+
     # Set seed for reproducibility
     seed = args_cli.seed if args_cli.seed is not None else agent_cfg.get("seed", 42)
     set_seed(seed)
-    
+
     # Load environment configuration
     env_spec = gym.spec(args_cli.task)
     env_cfg_entry_point = env_spec.kwargs.get("env_cfg_entry_point")
-    
+
     if env_cfg_entry_point:
         import importlib
         module_path, class_name = env_cfg_entry_point.split(":")
         module = importlib.import_module(module_path)
         env_cfg_class = getattr(module, class_name)
         env_cfg = env_cfg_class()
-        
+
         # Override configurations with CLI arguments
         if args_cli.num_envs is not None:
             env_cfg.scene.num_envs = args_cli.num_envs
         env_cfg.seed = seed
     else:
         raise ValueError(f"No env config entry point found for task {args_cli.task}")
-    
+
     # Setup logging directory
     log_root_path = os.path.join("logs", "skrl", agent_cfg.get("agent", {}).get("experiment", {}).get("directory", "sg_gr00t_rl"))
     log_root_path = os.path.abspath(log_root_path)
     print(f"[INFO] Logging experiment in directory: {log_root_path}")
-    
+
     log_dir = datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + "_sac_torch"
     if args_cli.zero_init_last_layer:
         log_dir += "_zero_init"
     if args_cli.orthogonal_init:
         log_dir += f"_orth_{args_cli.orthogonal_gain}"
-    
+
     # Update agent config with log directory
     agent_cfg["agent"]["experiment"]["directory"] = log_root_path
     agent_cfg["agent"]["experiment"]["experiment_name"] = log_dir
     log_dir = os.path.join(log_root_path, log_dir)
-    
+
     # Set log directory for environment
     env_cfg.log_dir = log_dir
 
     # Create isaac environment
     env = gym.make(args_cli.task, cfg=env_cfg, render_mode="rgb_array" if args_cli.video else None)
-    
+
     # Wrap for video recording
     if args_cli.video:
         video_kwargs = {
@@ -247,12 +247,12 @@ def main():
         print(f"  Video folder: {video_kwargs['video_folder']}")
         print(f"  Video interval: {args_cli.video_interval}")
         print(f"  Video length: {args_cli.video_length}")
-        
+
         env = gym.wrappers.RecordVideo(env, **video_kwargs)
-    
+
     # Wrap around environment for skrl
     env = wrap_env(env)
-    
+
     device = env.device
 
     # Instantiate a memory as rollout buffer (any memory can be used for this)
@@ -263,12 +263,12 @@ def main():
     model_cfg = agent_cfg.get("models", {})
     policy_cfg = model_cfg.get("policy", {})
     critic_cfg = model_cfg.get("critic", {})
-    
+
     # Command line args override YAML config
     zero_init = args_cli.zero_init_last_layer if args_cli.zero_init_last_layer else policy_cfg.get("zero_init_last_layer", False)
     orthogonal_init = args_cli.orthogonal_init if args_cli.orthogonal_init else policy_cfg.get("orthogonal_init", False)
     orthogonal_gain = args_cli.orthogonal_gain if args_cli.orthogonal_init else policy_cfg.get("orthogonal_gain", 1.0)
-    
+
     # Instantiate the agent's models (function approximators).
     # SAC requires 5 models, visit its documentation for more details
     # https://skrl.readthedocs.io/en/latest/api/agents/sac.html#models
@@ -283,12 +283,12 @@ def main():
         orthogonal_init=orthogonal_init,
         orthogonal_gain=orthogonal_gain
     )
-    
+
     # Get critic initialization settings (can be different from policy)
     critic_orthogonal_init = args_cli.orthogonal_init if args_cli.orthogonal_init else critic_cfg.get("orthogonal_init", False)
     critic_orthogonal_gain = args_cli.orthogonal_gain if args_cli.orthogonal_init else critic_cfg.get("orthogonal_gain", 1.0)
     critic_use_layer_norm = critic_cfg.get("use_layer_norm", False)
-    
+
     models["critic_1"] = Critic(env.observation_space, env.action_space, device,
                                 orthogonal_init=critic_orthogonal_init,
                                 orthogonal_gain=critic_orthogonal_gain,
@@ -310,12 +310,12 @@ def main():
     # https://skrl.readthedocs.io/en/latest/api/agents/sac.html#configuration-and-hyperparameters
     cfg = SAC_DEFAULT_CONFIG.copy()
     cfg.update(agent_cfg.get("agent", {}))
-    
+
     # Update state preprocessor with environment-specific info
     if cfg.get("state_preprocessor") == "RunningStandardScaler":
         cfg["state_preprocessor"] = RunningStandardScaler
         cfg["state_preprocessor_kwargs"] = {"size": env.observation_space, "device": device}
-    
+
     # Use the same experiment name and directory that was already set up
     # (already includes timestamp and initialization info)
     cfg["experiment"]["directory"] = agent_cfg["agent"]["experiment"]["directory"]
@@ -333,21 +333,31 @@ def main():
         print(f"\n[INFO] Loading BC checkpoint: {args_cli.bc_checkpoint}")
         try:
             checkpoint = torch.load(args_cli.bc_checkpoint, map_location=device)
-            
+
             # Load policy weights
             if 'model_state_dict' in checkpoint:
                 # BC checkpoint format
                 bc_state_dict = checkpoint['model_state_dict']
-                
+
                 # Map BC model weights to SAC policy network
-                # BC model structure: net.0, net.2, net.4, ... (Linear layers with ELU in between)
-                # SAC policy structure: net.0, net.1, net.2, ... (same structure)
-                models["policy"].net.load_state_dict(bc_state_dict, strict=False)
-                
-                print(f"[INFO] BC policy weights loaded successfully")
+                # BC model has keys like: 'net.0.weight', 'net.0.bias', 'net.2.weight', ...
+                # SAC model expects keys like: '0.weight', '0.bias', '2.weight', ...
+                # Strip the 'net.' prefix from BC keys
+                mapped_state_dict = {}
+                for key, value in bc_state_dict.items():
+                    if key.startswith('net.'):
+                        new_key = key[4:]  # Remove 'net.' prefix (4 characters)
+                        mapped_state_dict[new_key] = value
+                    else:
+                        mapped_state_dict[key] = value
+
+                result = models["policy"].net.load_state_dict(mapped_state_dict, strict=False)
+                print(f"[INFO] BC policy weights loaded: {len(mapped_state_dict)} keys")
+                print(f"[INFO] Missing keys: {result.missing_keys}")
+                print(f"[INFO] Unexpected keys: {result.unexpected_keys}")
                 print(f"[INFO] BC training loss: {checkpoint.get('val_loss', 'N/A')}")
                 print(f"[INFO] BC trained for {checkpoint.get('epoch', 'N/A')} epochs")
-                
+
                 if 'metadata' in checkpoint:
                     print(f"[INFO] BC dataset info:")
                     for key, val in checkpoint['metadata'].items():
@@ -356,9 +366,9 @@ def main():
                 # Standard checkpoint format
                 models["policy"].load_state_dict(checkpoint, strict=False)
                 print(f"[INFO] Policy weights loaded from checkpoint")
-            
+
             print(f"[INFO] Starting RL finetuning from BC initialization...\n")
-            
+
         except Exception as e:
             print(f"[WARNING] Failed to load BC checkpoint: {e}")
             print(f"[WARNING] Continuing with random initialization...")
@@ -393,7 +403,7 @@ def main():
     print(f"  - Learning starts: {cfg.get('learning_starts', 0)}")
     print(f"  - Random timesteps: {cfg.get('random_timesteps', 0)}")
     print(f"[INFO] State preprocessor: {cfg.get('state_preprocessor', 'None')}")
-    
+
     trainer.train()
 
 
