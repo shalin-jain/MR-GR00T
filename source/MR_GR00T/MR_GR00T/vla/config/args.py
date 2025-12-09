@@ -136,7 +136,7 @@ class Gr00tN1ClosedLoopArguments:
 
     # Closed loop specific parameters
     num_feedback_actions: int = field(
-        default=16,
+        default=8,
         metadata={
             "description": "Number of feedback actions to execute per rollout (can be less than action_horizon)."
         },

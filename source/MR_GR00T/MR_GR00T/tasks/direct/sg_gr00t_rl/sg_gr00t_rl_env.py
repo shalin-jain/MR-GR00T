@@ -418,6 +418,7 @@ class SgGr00tRlEnv(DirectRLEnv):
         within_x = torch.abs(rel_pos[:, 0]) < bin_half_width_x
         within_y = torch.abs(rel_pos[:, 1]) < bin_half_width_y
         within_z = torch.abs(rel_pos[:, 2]) < bin_half_height_z
+        within_z = torch.abs(rel_pos[:, 2]) < bin_half_height_z * 2  # allow some tolerance in Z
 
         # success only if within bounds in all three dimensions
         return within_x & within_y & within_z
@@ -437,23 +438,23 @@ class SgGr00tRlEnv(DirectRLEnv):
             self.scene["object"].data.root_pos_w,
             self.scene["bin"].data.root_pos_w
         )
-        success_rew = torch.where(success, 10.0, 0.0)
+        success_rew = torch.where(success, 1.0, 0.0)
 
-        # action rate penalty: penalize large changes in actions to encourage smoothness
-        # compute L2 norm of action differences
-        action_rate = torch.norm(self.processed_actions - self.previous_actions, dim=-1)
-        action_rate_penalty = -1.0e-1 * action_rate
+        # # action rate penalty: penalize large changes in actions to encourage smoothness
+        # # compute L2 norm of action differences
+        # action_rate = torch.norm(self.processed_actions - self.previous_actions, dim=-1)
+        # action_rate_penalty = -1.0e-1 * action_rate
 
-        # action norm penalty: penalize large residual actions to encourage minimal intervention
-        # only penalize the residual (policy output), not the VLA baseline
-        residual_norm = torch.norm(self.residual_actions, dim=-1)
-        action_norm_penalty = -1.0e-1 * residual_norm
+        # # action norm penalty: penalize large residual actions to encourage minimal intervention
+        # # only penalize the residual (policy output), not the VLA baseline
+        # residual_norm = torch.norm(self.residual_actions, dim=-1)
+        # action_norm_penalty = -1.0e-1 * residual_norm
 
         # log action rate penalty
-        self.extras["log"]["action_rate_penalty"] = action_rate_penalty.mean()
-        self.extras["log"]["action_norm_penalty"] = action_norm_penalty.mean()
+        # self.extras["log"]["action_rate_penalty"] = action_rate_penalty.mean()
+        # self.extras["log"]["action_norm_penalty"] = action_norm_penalty.mean()
 
-        return success_rew + action_rate_penalty + action_norm_penalty
+        return success_rew #+ action_rate_penalty + action_norm_penalty
 
     def _get_terminations(self) -> torch.Tensor:
         """
@@ -575,6 +576,7 @@ class SgGr00tRlEnv(DirectRLEnv):
             bin_positions = self.curriculum_manager.sample_bin_position(base_bin_pos, len(env_ids))
             default_bin_state = self.bin.data.default_root_state[env_ids].clone()
             default_bin_state[:, :3] = bin_positions + self.scene.env_origins[env_ids, :3]
+            default_bin_state[:, 2] += 0.005  # slight offset to prevent initial collision
 
             self.bin.write_root_pose_to_sim(
                 default_bin_state[:, :7], env_ids

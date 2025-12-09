@@ -16,20 +16,20 @@ models:
     clip_log_std: True
     min_log_std: -20.0
     max_log_std: 2.0
-    initial_log_std: -4.0
+    initial_log_std: -15.0
     network:
       - name: net
         input: OBSERVATIONS
         layers: [1024, 512, 512]
         activations: elu
     output: ACTIONS
-    output_activation: tanh  # Bound actions to [-1, 1]
-    output_scale: 1.0
+    output_activation: linear #tanh  # Bound actions to [-1, 1]
+    output_scale: 0.1 #1.0
     # intialization
     zero_init_last_layer: True
-    initialization: orthogonal_
+    initialization: sparse_
     initialization_kwargs:
-      gain: 0.3
+      sparsity: 0.0
   value:
     class: DeterministicMixin
     clip_actions: False
@@ -53,13 +53,15 @@ memory:
 agent:
   class: PPO
   rollouts: 300
-  learning_epochs: 20
+  learning_epochs: 50
   mini_batches: 5
-  discount_factor: 0.99
+  discount_factor: 0.99999
   lambda: 0.95
-  learning_rate: [2.5e-04, 1.0e-03]  # [policy (actor), value (critic)] learning rates
-  # learning_rate_scheduler: KLAdaptiveLR
-  # learning_rate_scheduler_kwargs:
+  learning_rate: [5.0e-04, 5.0e-03] #[5.0e-05, 5.0e-03] #[2.5e-04, 1.0e-03]  # [policy (actor), value (critic)] learning rates
+  learning_rate_scheduler: torch.optim.lr_scheduler.CosineAnnealingLR
+  learning_rate_scheduler_kwargs:
+    T_max: 100000
+    eta_min: 0.0
   #   kl_threshold: 0.016
   # state_preprocessor: RunningStandardScaler
   # state_preprocessor_kwargs: null
@@ -73,7 +75,7 @@ agent:
   clip_predicted_values: True
   entropy_loss_scale: 0.00
   value_loss_scale: 1.0
-  kl_threshold: 0.0
+  kl_threshold: 0.1
   rewards_shaper_scale: 1.0
   time_limit_bootstrap: False
   # logging and checkpoint

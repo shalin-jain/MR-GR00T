@@ -103,6 +103,7 @@ class SpawnCurriculumManager:
         if self.weighted_success_rate >= self.cfg.success_threshold and not self._at_final_ranges():
             self._expand_ranges()
             self.curriculum_level += 1
+            print(f"[CURRICULUM]: Advanced to level {self.curriculum_level}.")
 
             # Clear history buffers after expansion so previous level performance doesn't affect next level
             self.success_history.clear()

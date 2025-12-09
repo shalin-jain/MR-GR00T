@@ -212,7 +212,7 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
 ##
 @configclass
 class VLACfg:
-    args: Gr00tN1ClosedLoopArguments = Gr00tN1ClosedLoopArguments(model_path="/home/sjain441/MR-GR00T/MR_GR00T/nvidia/finetuned")
+    args: Gr00tN1ClosedLoopArguments = Gr00tN1ClosedLoopArguments(model_path="/home/skailas3/MR-GR00T/nvidia/finetuned")
     command: str = "Pick up the blue pipe and place it in the bin on the right"
     backbone_embedding_dim: int = 1536
     state_embedding_dim : int = 64
@@ -225,17 +225,17 @@ class CurriculumCfg:
     """Configuration for curriculum learning."""
 
     # Success rate thresholds
-    success_threshold: float = 0.85
+    success_threshold: float = 0.80
     """Success rate threshold (0-1) to trigger curriculum expansion. High because VLA starts strong."""
 
     # XY range parameters for object offset
-    object_x_min_start: float = -0.02
+    object_x_min_start: float = -0.020
     """Initial minimum X offset for object spawn (m)."""
-    object_x_max_start: float = 0.02
+    object_x_max_start: float = 0.020
     """Initial maximum X offset for object spawn (m)."""
-    object_y_min_start: float = -0.02
+    object_y_min_start: float = -0.020
     """Initial minimum Y offset for object spawn (m)."""
-    object_y_max_start: float = 0.02
+    object_y_max_start: float = 0.020
     """Initial maximum Y offset for object spawn (m)."""
 
     object_x_min_final: float = -0.1
@@ -248,29 +248,29 @@ class CurriculumCfg:
     """Final maximum Y offset for object spawn (m)."""
 
     # XY range parameters for bin offset
-    bin_x_min_start: float = -0.01
+    bin_x_min_start: float = 0
     """Initial minimum X offset for bin spawn (m)."""
-    bin_x_max_start: float = 0.01
+    bin_x_max_start: float = 0
     """Initial maximum X offset for bin spawn (m)."""
-    bin_y_min_start: float = -0.01
+    bin_y_min_start: float = 0
     """Initial minimum Y offset for bin spawn (m)."""
-    bin_y_max_start: float = 0.01
+    bin_y_max_start: float = 0
     """Initial maximum Y offset for bin spawn (m)."""
 
-    bin_x_min_final: float = -0.1
+    bin_x_min_final: float = 0
     """Final minimum X offset for bin spawn (m)."""
-    bin_x_max_final: float = 0.1
+    bin_x_max_final: float = 0
     """Final maximum X offset for bin spawn (m)."""
-    bin_y_min_final: float = -0.1
+    bin_y_min_final: float = 0
     """Final minimum Y offset for bin spawn (m)."""
-    bin_y_max_final: float = 0.1
+    bin_y_max_final: float = 0
     """Final maximum Y offset for bin spawn (m)."""
 
     # Expansion parameters
-    expansion_rate: float = 0.05
+    expansion_rate: float = 0.01
     """Amount to expand ranges by when threshold is met (fraction of final range)."""
 
-    update_frequency: int = 200
+    update_frequency: int = 50 #200
     """Number of EPISODES (trials) between curriculum checks. With 50 envs, this is ~4 resets."""
 
     warmup_resets: int = 50
@@ -313,11 +313,11 @@ class SgGr00tRlEnvCfg(DirectRLEnvCfg):
     scene: InteractiveSceneCfg = ObjectTableSceneCfg(num_envs=16, env_spacing=4.0, replicate_physics=True)
 
     # actions
-    action_scale: float = 2.0  # scale for actions - INCREASED to allow larger residual corrections
-    residual_arms_only: bool = True  # if True, residual policy only controls arm joints (0-13), hands use VLA only
+    action_scale: float = 0.1 #2.0  # scale for actions - INCREASED to allow larger residual corrections
+    residual_arms_only: bool = False  # if True, residual policy only controls arm joints (0-13), hands use VLA only
 
     # observations
-    use_vla_obs: bool = False  # if True, use VLA backbone embedding in obs; if False, use explicit state (EEF, object, bin positions)
+    use_vla_obs: bool = True  # if True, use VLA backbone embedding in obs; if False, use explicit state (EEF, object, bin positions)
 
     def __post_init__(self):
         """Post initialization."""

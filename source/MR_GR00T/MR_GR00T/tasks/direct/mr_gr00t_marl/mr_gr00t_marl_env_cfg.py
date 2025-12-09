@@ -210,10 +210,10 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
 ##
 @configclass
 class VLACfg:
-    args: Gr00tN1ClosedLoopArguments = Gr00tN1ClosedLoopArguments(model_path="/home/sjain441/MR-GR00T/MR_GR00T/nvidia/finetuned")
+    args: Gr00tN1ClosedLoopArguments = Gr00tN1ClosedLoopArguments(model_path="/home/skailas3/MR-GR00T/nvidia/finetuned")
     commands: dict = {
-        "robot_1": "Pick up the blue pipe and pass it to your right",
-        "robot_2": "Wait to receive the blue pipe from the left and place it in the bin on the right"
+        "robot_1": "Pick up the pipe and place it on the right",
+        "robot_2": "Wait until you see the pipe, then pick up the pipe and place it in the bin on the right"
     }
     backbone_embedding_dim: int = 1536
     state_embedding_dim : int = 64
@@ -222,7 +222,7 @@ class VLACfg:
 class MrGr00tMarlEnvCfg(DirectMARLEnvCfg):
     # env
     decimation = 5
-    episode_length_s = 5.0
+    episode_length_s = 25.0
 
     # multi-agent specification and spaces definition
     possible_agents = ["robot_1", "robot_2"]
